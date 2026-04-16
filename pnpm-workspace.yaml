@@ -1,0 +1,4 @@
+packages:
+  - 'apps/*'    # Frontend (web), API, etc.
+  - 'packages/*' # Shared UI components, shared TS types, shared DB schemas
+  - 'workers/*'  # For the heavy lifting (image generation/node processing)
