@@ -1,0 +1,29 @@
+import { BaseFieldProps } from "../base";
+import { inputSurfaceTone, inputTextTone, type FieldTone } from "../../../tokens/tones";
+
+export type Tone = FieldTone;
+
+type PresentationalFieldProps = Omit<BaseFieldProps, "required" | "type">;
+
+interface TextareaFieldRendererProps extends PresentationalFieldProps {
+    id: string;
+    tone: Tone;
+    initialValue?: string;
+    placeholder?: string;
+}
+
+export default function TextareaRenderer({
+    id,
+    tone,
+    initialValue,
+    placeholder,
+}: TextareaFieldRendererProps) {
+    return (
+        <textarea
+            id={id}
+            defaultValue={initialValue}
+            className={`nodrag nopan p-1 flex-1 w-full min-h-[90px] border-transparent ${inputSurfaceTone[tone]} ${inputTextTone[tone]} border-1 rounded-sm text-[11px] shadow-[0_0.5px_0px_0_rgba(255,255,255,0.10)] outline-none select-none resize-y`}
+            placeholder={placeholder}
+        />
+    );
+}

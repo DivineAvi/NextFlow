@@ -1,0 +1,20 @@
+import { LucideIceCream, LucideImage, LucideText, type LucideIcon } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import { TextNodeIcon } from "@nextflow/ui";
+
+/** Lucide icons or custom SVG components (see `TextNodeIcon`). */
+export type SidebarNodeIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
+
+export type SidebarNode = {
+  id: string;
+  label: string;
+  type: string;
+  description: string;
+  icon: SidebarNodeIcon;
+  iconColor?: string;
+};
+
+export const SIDEBAR_NODES: SidebarNode[] = [
+  { id: "text-node", label: "Text Node", type: "text-node", description: "A text node is a node that can be used to create a text input.", icon: LucideText},
+  { id: "image-node", label: "Image Node", type: "image-node", description: "An image node is a node that can be used to create an image input.", icon: LucideImage},
+];
