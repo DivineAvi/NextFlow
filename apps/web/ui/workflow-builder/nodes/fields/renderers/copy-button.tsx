@@ -35,7 +35,7 @@ export default function CopyButton({ value }: CopyButtonProps) {
       onClick={handleCopy}
       type="button"
       title={copied ? "Copied!" : "Copy to clipboard"}
-      className="inline-flex h-6 w-6 justify-center items-center text-zinc-100 text-xs rounded-md transition duration-300 ease-out hover:bg-neutral-700 border-none"
+      className="inline-flex h-6 w-6 justify-center items-center text-zinc-100 text-xs rounded-md transition duration-300 ease-out hover:bg-neutral-700 border-none cursor-pointer"
       style={{ padding: 0 }}
     >
       <span className="flex items-center justify-center h-full w-full">

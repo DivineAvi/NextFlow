@@ -68,9 +68,9 @@ export const BaseNode = memo(function BaseNode({
 
       {/* Body */}
       <div
-        className={`${borderRadius} ${borderWidth} ${backgroundColor} ${textColor} w-full h-full flex-1 transition-all duration-300 ${selected ? selectedBorderColor : borderColor}`}
+        className={`${borderRadius} ${borderWidth} ${backgroundColor} ${textColor} flex-1 transition-all duration-300 ${selected ? selectedBorderColor : borderColor}`}
       >
-        <div className="flex flex-col flex-1 w-full h-full pb-4">{children}</div>
+        <div className="flex flex-col flex-1 pb-4">{children}</div>
       </div>
     </div>
   );

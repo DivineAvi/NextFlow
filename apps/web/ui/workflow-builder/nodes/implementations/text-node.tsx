@@ -10,19 +10,7 @@ export function TextNode(props: NodeProps) {
   return (
     <BaseNode {...props} minWidth="min-w-[220px]" minHeight="min-h-fit">
       {/* Handles row */}
-      <div className="relative flex px-4 h-7 w-full items-center justify-between">
-        <div className="flex items-center h-full">
-          <LabelRenderer htmlFor="text-input" tone="dark">Input</LabelRenderer>
-          <HandlerRenderer
-            label="Text input"
-            id="text-input"
-            handleType="target"
-            handlerDataType="string"
-            description="The input text to process"
-            tone="yellow"
-            position={Position.Left}
-          />
-        </div>
+      <div className="relative flex px-4 h-7 w-full items-center justify-end">
         <div className="flex items-center h-full">
           <LabelRenderer htmlFor="text-output" tone="dark">Output</LabelRenderer>
           <HandlerRenderer
@@ -43,7 +31,7 @@ export function TextNode(props: NodeProps) {
       </div>
 
       {/* Content row */}
-      <div className="flex flex-col px-3">
+      <div className="px-3">
         <TextareaRenderer
           id="text-input"
           tone="dark"

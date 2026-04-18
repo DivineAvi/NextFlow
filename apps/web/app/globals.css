@@ -13,11 +13,12 @@
 /* App source — only hand-picked leaf directories with actual source.
    Turbopack output (.next/) and node_modules/ are never included. */
 @source "./";
-@source "../components";
+@source "../ui";
 @source "../hooks";
 @source "../config";
 @source "../tokens";
 @source "../lib";
+@source "../store";
 
 /* Shared packages */
 @source "../../../packages/ui/src";
@@ -56,3 +57,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ─── Custom edge dash animation ──────────────────────────────────────────── */
+@keyframes edge-wave {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dashoffset: 10;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+

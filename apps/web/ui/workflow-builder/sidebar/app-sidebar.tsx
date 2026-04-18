@@ -7,7 +7,7 @@ import { SIDEBAR_NODES } from "@/config/sidebar-nodes";
 import { NodeLibrary } from "./node-library";
 import { SidebarToggle } from "./sidebar-toggle";
 import { SidebarResizer } from "./sidebar-resizer";
-import { UserAuthButton } from "@/components/user-auth-button";
+import { UserAuthButton } from "@/ui/user-auth-button";
 
 export function AppSidebar() {
   const { isCollapsed, isResizing, startResizing, toggleCollapse, currentWidth } =
