@@ -2,13 +2,7 @@ import type { Metadata } from "next";
 import { TooltipProvider } from "@nextflow/ui";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import {
-  ClerkProvider,
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 
 const geistSans = Geist({
@@ -43,15 +37,7 @@ export default function RootLayout({
             variables: { colorPrimary: "#3b82f6" },
           }}
         >
-          <header className="flex shrink-0 items-center justify-end gap-2 border-b border-zinc-800 bg-[#0E0E0E] px-4 py-2">
-            <Show when="signed-out">
-              <SignInButton />
-              <SignUpButton />
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </header>
+
           <TooltipProvider>
             <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
           </TooltipProvider>

@@ -23,7 +23,7 @@ export interface CoreNodeDefinition{
   type: NodeType;
   label: string;
   description: string;
-  configSchema: z.ZodObject<any>;
+  configSchema: z.ZodObject<z.ZodRawShape>;
   inputs: NodeInput[];
   outputs: NodeOutput[];
   previewType: PreviewType;
