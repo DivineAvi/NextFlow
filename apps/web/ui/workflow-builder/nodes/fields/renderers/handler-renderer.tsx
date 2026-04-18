@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import { useState } from "react";
 import { Handle, Position, type HandleType } from "reactflow";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@nextflow/ui";
-import { accentHandleHex, type AccentTone } from "@/tokens/tones";
+import { accentHandleHex, type AccentTone } from "@/ui/tones/tones";
 
 // ---------------------------------------------------------------------------
 // Types

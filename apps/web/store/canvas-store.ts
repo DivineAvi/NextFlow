@@ -12,10 +12,14 @@ interface CanvasStore {
   pendingNodeType: string | null;
   requestAddNode: (type: string) => void;
   clearPendingNode: () => void;
+  hoveredEdgeId: string | null;
+  setHoveredEdgeId: (id: string | null) => void;
 }
 
 export const useCanvasStore = create<CanvasStore>((set) => ({
   pendingNodeType: null,
+  hoveredEdgeId: null,
   requestAddNode: (type) => set({ pendingNodeType: type }),
   clearPendingNode: () => set({ pendingNodeType: null }),
+  setHoveredEdgeId: (id: string | null) => set({ hoveredEdgeId: id }),
 }));

@@ -17,15 +17,24 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref}
         className={cn(
-          "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+          " inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
           variant === "default" && "bg-foreground text-background hover:bg-foreground/90",
-          variant === "ghost" && "hover:bg-foreground/5",
+          variant === "ghost" && "hover:bg-foreground/20",
           variant === "outline" && "border border-foreground/15 bg-background hover:bg-foreground/5",
           size === "default" && "h-9 px-4 py-2",
           size === "sm" && "h-8 rounded-md px-3 text-xs",
           size === "icon" && "size-9",
           className
         )}
+        onClick={e => {
+          if (props.onClick) props.onClick(e)
+          // Change size on click
+          const el = e.currentTarget as HTMLElement;
+          el.style.transform = "scale(0.95)"
+          setTimeout(() => {
+            el.style.transform = ""
+          }, 150)
+        }}
         {...props}
       />
     )

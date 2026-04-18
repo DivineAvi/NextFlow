@@ -1,4 +1,4 @@
-import type { FieldTone } from "@/tokens/tones";
+import type { FieldTone } from "@/ui/tones/tones";
 import React from "react";
 
 interface LabelRendererProps {

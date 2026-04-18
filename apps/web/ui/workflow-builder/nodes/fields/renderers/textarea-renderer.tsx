@@ -1,11 +1,8 @@
-import { inputSurfaceTone, inputTextTone, type FieldTone } from "@/tokens/tones";
-import type { BaseFieldProps } from "../types";
+import { inputSurfaceTone, inputTextTone, type FieldTone } from "@/ui/tones/tones";
 
 export type Tone = FieldTone;
 
-type PresentationalFieldProps = Omit<BaseFieldProps, "required" | "type">;
-
-interface TextareaRendererProps extends PresentationalFieldProps {
+interface TextareaRendererProps {
   id: string;
   tone: Tone;
   initialValue?: string;

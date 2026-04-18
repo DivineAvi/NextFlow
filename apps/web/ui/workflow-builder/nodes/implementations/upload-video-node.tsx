@@ -1,44 +1,39 @@
 import type { NodeProps } from "reactflow";
 import { Position } from "reactflow";
 import { BaseNode } from "../base-node";
-import TextareaRenderer from "../fields/renderers/textarea-renderer";
+import UploadImageRenderer from "../fields/renderers/upload-file-renderer";
 import HandlerRenderer from "../fields/renderers/handler-renderer";
 import LabelRenderer from "../fields/renderers/label-renderer";
 import CopyButton from "../fields/renderers/copy-button";
-import { TextNodeIcon } from "@nextflow/ui";
 
-export function TextNode(props: NodeProps) {
+export function UploadVideoNode(props: NodeProps) {
   return (
-    <BaseNode {...props} Width="220px" icon={TextNodeIcon} tone="yellow">
+    <BaseNode {...props} Width="220px" >
       {/* Handles row */}
       <div className="relative flex px-4 h-7 w-full items-center justify-end">
         <div className="flex items-center h-full">
-          <LabelRenderer htmlFor="text-output" tone="dark">Output</LabelRenderer>
+          <LabelRenderer htmlFor="video-output" tone="dark">Output</LabelRenderer>
           <HandlerRenderer
-            label="Text output"
-            id="text-output"
+            label="Video output"
+            id="video-output"
             handleType="source"
             handlerDataType="string"
-            description="The processed text"
-            tone="yellow"
+            description="The uploaded video URL"
+            tone="pink"
             position={Position.Right}
           />
         </div>
       </div>
-
-      {/* Copy button row */}
-      <div className="flex justify-end px-3 h-7">
-        <CopyButton value={props.data} />
-      </div>
-
+      <div className="px-3 flex gap-2 items-center">
+        <LabelRenderer htmlFor="video-output" tone="dark">Video</LabelRenderer>
       {/* Content row */}
-      <div className="flex px-3">
-        <TextareaRenderer
-          id="text-input"
+        <UploadImageRenderer
+          id="video-input"
           tone="dark"
-          initialValue={props.data.text}
-          placeholder="Enter text"
+          fileType="video"
+          placeholder="Add Video"
         />
+
       </div>
     </BaseNode>
   );

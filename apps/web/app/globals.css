@@ -58,16 +58,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ─── Custom edge dash animation ──────────────────────────────────────────── */
-@keyframes edge-wave {
-  0% {
-    stroke-dashoffset: 0;
+@keyframes pulse-shadow {
+  0%, 100% {
+    box-shadow: 0 0 15px 1px var(--pulse-shadow-color, rgba(100, 100, 255, 0.2));
   }
   50% {
-    stroke-dashoffset: 10;
-  }
-  100% {
-    stroke-dashoffset: 0;
+    box-shadow: 0 0 24px 5px var(--pulse-shadow-color, rgba(100, 100, 255, 0.08));
   }
 }
 
+.animate-pulse-shadow {
+  animation: pulse-shadow 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

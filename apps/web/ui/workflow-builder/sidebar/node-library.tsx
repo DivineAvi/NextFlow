@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import type { SidebarNode } from "@/config/sidebar-nodes";
 import { NodeLibrarySearchDialog } from "./node-library-search-dialog";
+import NodeLibraryItem from "./node-library-item";
 
 interface NodeLibraryProps {
   nodes: SidebarNode[];
@@ -64,39 +65,9 @@ export function NodeLibrary({
 
       {!sectionHidden &&
         nodes.map((node) => {
-          const Icon = node.icon;
           return (
-            <Tooltip key={node.id}>
-              <TooltipTrigger asChild>
-                <div
-                  draggable
-                  onDragStart={(e) => onDragStart(e, node.type)}
-                  className="flex w-full items-center justify-start"
-                >
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "flex h-9 w-full items-center rounded-lg py-2 text-white transition-all hover:cursor-pointer",
-                      isCollapsed ? "justify-start px-2" : "justify-start gap-3 px-4"
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" aria-hidden />
-                    <span
-                      className={cn(
-                        "font-suisse text-sm font-medium whitespace-nowrap transition-all duration-300",
-                        isCollapsed ? "hidden w-0 opacity-0" : "w-auto opacity-100"
-                      )}
-                    >
-                      {node.label}
-                    </span>
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right" align="center" hidden={!isCollapsed} hideWhenDetached>
-                {node.label}
-              </TooltipContent>
-            </Tooltip>
-          );
+            <NodeLibraryItem key={node.id} node={node} isCollapsed={isCollapsed} onDragStart={onDragStart} />
+          )
         })}
 
       <NodeLibrarySearchDialog

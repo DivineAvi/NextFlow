@@ -5,30 +5,16 @@ import TextareaRenderer from "../fields/renderers/textarea-renderer";
 import HandlerRenderer from "../fields/renderers/handler-renderer";
 import LabelRenderer from "../fields/renderers/label-renderer";
 import CopyButton from "../fields/renderers/copy-button";
-import UploadImageRenderer from "../fields/renderers/upload-image-renderer";
+import UploadImageRenderer from "../fields/renderers/upload-file-renderer";
 import PreviewRenderer from "../fields/renderers/preview-renderer";
+import { LLMNodeIcon } from "@nextflow/ui";
+import SelectorRenderer from "../fields/renderers/selector-renderer";
 
 export function LLMNode(props: NodeProps) {
   return (
-    <BaseNode {...props} minWidth="min-w-[220px]" minHeight="min-h-fit">
+    <BaseNode {...props} Width="220px"  icon={LLMNodeIcon}>
       {/* Handles row: Input (Prompt, Image), Output (Text) */}
-      <div className="relative flex px-4 h-7 w-full items-center justify-between">
-        {/* Left: Input handles */}
-        <div className="flex gap-2 items-center h-full">
-          {/* Prompt Input */}
-          <LabelRenderer htmlFor="prompt-input" tone="dark">
-            Prompt
-          </LabelRenderer>
-          <HandlerRenderer
-            label="Prompt Input"
-            id="prompt-input"
-            handleType="target"
-            handlerDataType="string"
-            description="Input prompt text"
-            tone="yellow"
-            position={Position.Left}
-          />
-        </div>
+      <div className="relative flex px-4 h-7 w-full items-center justify-end">
         {/* Right: Output handle */}
         <div className="flex items-center h-full">
           <LabelRenderer htmlFor="llm-text-output" tone="dark">
@@ -44,83 +30,100 @@ export function LLMNode(props: NodeProps) {
             position={Position.Right}
           />
         </div>
+
       </div>
 
-      {/* Copy button row */}
-      <div className="flex justify-end px-3 h-7">
-        <CopyButton value={props.data && props.data.output} />
+      {/* Left: Input handles */}
+      <div className="relative px-3 flex gap-2 items-center h-full">
+        {/* Prompt Input */}
+        <LabelRenderer htmlFor="prompt-input" tone="dark">
+          System Prompt
+        </LabelRenderer>
+        <HandlerRenderer
+          label="Prompt Input"
+          id="llm-system-prompt-input"
+          handleType="target"
+          handlerDataType="string"
+          description="Input prompt text"
+          tone="yellow"
+          position={Position.Left}
+        />
+      </div>
+      {/* System prompt field */}
+      <div className="px-3 p-1">
+        <TextareaRenderer
+          id="system-prompt"
+          tone="dark"
+          initialValue={props.data.systemPrompt}
+          placeholder="You are a helpful assistant..."
+
+        />
       </div>
 
-      {/* Content fields */}
-      <div className="flex flex-col px-3 gap-3">
-        {/* System prompt field */}
-        <div className="flex flex-col gap-1">
-          <LabelRenderer htmlFor="system-prompt" tone="dark">
-            System Prompt
+
+
+      {/* Left: Input handles */}
+      <div className="relative px-3 flex gap-2 items-center h-full">
+        {/* Prompt Input */}
+        <LabelRenderer htmlFor="prompt-input" tone="dark">
+          User Prompt
+        </LabelRenderer>
+        <HandlerRenderer
+          label="User Prompt Input"
+          id="llm-user-prompt-input"
+          handleType="target"
+          handlerDataType="string"
+          description="Input prompt text"
+          tone="yellow"
+          position={Position.Left}
+        />
+      </div>
+
+      {/* User prompt field */}
+      <div className="px-3 p-1">
+        <TextareaRenderer
+          id="user-prompt"
+          tone="dark"
+          initialValue={props.data.prompt}
+          placeholder="Enter the user prompt here..."
+
+        />
+      </div>
+      
+      <div className="flex px-3 justify-between items-center gap-5">
+
+
+
+        <div className="flex items-center gap-2 h-full flex-1">
+          <LabelRenderer htmlFor="image-input" tone="dark">
+            Model
           </LabelRenderer>
-          <TextareaRenderer
-            id="system-prompt"
+          <SelectorRenderer
+            id="model-input"
             tone="dark"
-            initialValue={props.data.systemPrompt}
-            placeholder="You are a helpful assistant..."
-
+            value="gemini-3-flash-preview"
+            options={[
+              { label: "Gemini 3 Flash (Latest)", value: "gemini-3-flash-preview" },
+              { label: "Nano Banana 2", value: "gemini-3.1-flash-image-preview" },
+            ]}
           />
-        </div>
-        {/* User prompt field */}
-        <div className="flex flex-col gap-1">
-          <LabelRenderer htmlFor="user-prompt" tone="dark">
-            User Prompt
-          </LabelRenderer>
-          <TextareaRenderer
-            id="user-prompt"
-            tone="dark"
-            initialValue={props.data.prompt}
-            placeholder="Enter the user prompt here..."
 
-          />
         </div>
-        {/* Reference image placeholder */}
-        <div className="flex flex-col gap-1">
-
-          <UploadImageRenderer
-            id="image-input"
-            tone="dark"
-            onChange={(file) => {
-              if (props.data && props.data.onImageChange) {
-                props.data.onImageChange(file);
-              }
-            }}
-          />
-          {props.data?.imageUrl && (
-            <div className="mt-2">
-              <PreviewRenderer
-                urls={[]}
-                id="image-preview"
-                sourceId="llm-text-output"
-                value="Image"
-                type="text"
-              />
-            </div>
-          )}
-        </div>
-
- 
       </div>
-
-      <div className=" relative flex items-center h-full p-4">
+      <div className="relative flex items-center h-full px-3">
           <HandlerRenderer
             label="Image Input"
             id="image-input"
             handleType="target"
             handlerDataType="string"
             description="Image input"
-            tone="yellow"
+            tone="blue"
             position={Position.Left}
           />
           <LabelRenderer htmlFor="image-input" tone="dark">
             Image
           </LabelRenderer>
-          </div>
+        </div>
     </BaseNode>
   );
 }

@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { toggleTrackTone, type FieldTone } from "@/tokens/tones";
-import type { BaseFieldProps } from "../types";
+import { toggleTrackTone, type FieldTone } from "@/ui/tones/tones";
 
 export type Tone = FieldTone;
 
-type PresentationalFieldProps = Omit<BaseFieldProps, "required" | "type">;
-
-interface ToggleRendererProps extends PresentationalFieldProps {
+interface ToggleRendererProps {
   id: string;
   tone: Tone;
   initialValue?: string;

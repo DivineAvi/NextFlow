@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import type { EdgeTone } from "@/ui/workflow-builder/canvas/edges/custom-edge";
+import { LLMNodeIcon, TextNodeIcon } from "@nextflow/ui";
 
 /** Lucide icons or custom SVG components. */
 export type SidebarNodeIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
@@ -36,7 +37,7 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: "Text",
     type: "text_node",
     description: "A free-form text input. Pipe it into any node that accepts a string.",
-    icon: AlignLeft,
+    icon: TextNodeIcon,
     tone: "yellow",
     category: "Input",
     shortcut: "T",
@@ -66,7 +67,7 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: "Run LLM",
     type: "llm_node",
     description: "Call Gemini (or any configured model) with a prompt and optional images.",
-    icon: Sparkles,
+    icon: LLMNodeIcon,
     tone: "blue",
     category: "AI",
     shortcut: "L",
