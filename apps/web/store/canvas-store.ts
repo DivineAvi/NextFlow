@@ -18,55 +18,52 @@ interface HistoryEntry {
 interface ExecutionState {
   isRunning: boolean;
   runId: string | null;
-  // Map of nodeId → { status, output }
-  nodeStatuses: Record<string, { status: string; output?: any }>;
+  nodeStatuses: Record<string, { status: string; output?: any; error?: string }>;
+}
+
+interface WorkflowExecutionState {
+  isRunning: boolean;
+  runId: string | null;
+  nodeStatuses: Record<string, { status: string; output?: any; error?: string }>;
 }
 
 interface CanvasStore {
-  // --- Core ReactFlow State ---
   nodes: Node[];
   edges: Edge[];
 
-  // --- Workflow Persistence ---
   workflowId: string | null;
   workflowName: string;
+  workflow_execution: WorkflowExecutionState;
 
-  // --- Sidebar Bridge ---
   pendingNodeType: string | null;
   hoveredEdgeId: string | null;
 
-  // --- Execution State ---
   execution: ExecutionState;
 
-  // --- Undo / Redo ---
   history: HistoryEntry[];
   historyIndex: number;
 
-  // --- Core ReactFlow Actions ---
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
 
-  // --- Data Management ---
   updateNodeData: (nodeId: string, data: Record<string, any>) => void;
   updateEdgeData: (edgeId: string, data: Record<string, any>) => void;
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
 
-  // --- Sidebar Bridge ---
   requestAddNode: (type: string) => void;
   clearPendingNode: () => void;
   setHoveredEdgeId: (id: string | null) => void;
 
-  // --- Workflow Persistence ---
   setWorkflowId: (id: string | null) => void;
   setWorkflowName: (name: string) => void;
 
-  // --- Execution ---
   setExecutionRunning: (runId: string) => void;
   setExecutionIdle: () => void;
-  applyNodeStatuses: (statuses: Record<string, { status: string; output?: any }>) => void;
+  applyNodeStatuses: (statuses: Record<string, { status: string; output?: any; error?: string }>) => void;
 
-  // --- Undo / Redo ---
+  runWorkflow: () => Promise<void>;
+
   pushHistory: () => void;
   undo: () => void;
   redo: () => void;
@@ -79,6 +76,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   edges: [],
   workflowId: null,
   workflowName: "Untitled Workflow",
+  workflow_execution: {
+    isRunning: false,
+    runId: null,
+    nodeStatuses: {},
+  },
   pendingNodeType: null,
   hoveredEdgeId: null,
   execution: {
@@ -89,7 +91,6 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   history: [],
   historyIndex: -1,
 
-  // ReactFlow boilerplate — delegates mutations to ReactFlow internals
   onNodesChange: (changes) => {
     set({ nodes: applyNodeChanges(changes, get().nodes) });
   },
@@ -127,11 +128,15 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         ...state.execution,
         isRunning: true,
         runId,
-        // Reset statuses to RUNNING for all nodes
         nodeStatuses: Object.fromEntries(
           state.nodes.map((n) => [n.id, { status: "RUNNING" }])
         ),
       },
+      // Clear stale statuses + errors from nodes
+      nodes: state.nodes.map((n) => ({
+        ...n,
+        data: { ...n.data, status: "RUNNING", error: undefined, output: undefined },
+      })),
     })),
 
   setExecutionIdle: () =>
@@ -140,7 +145,6 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     })),
 
   applyNodeStatuses: (statuses) => {
-    // Update both execution state and node data.status / data.output
     set((state) => ({
       execution: {
         ...state.execution,
@@ -155,16 +159,39 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
             ...n.data,
             status: s.status,
             ...(s.output !== undefined ? { output: s.output } : {}),
+            ...(s.error !== undefined ? { error: s.error } : {}),
           },
         };
       }),
     }));
   },
 
-  // --- Undo / Redo ---
+  runWorkflow: async () => {
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    if (execution.isRunning) return;
+
+    try {
+      const res = await fetch("/api/execute-workflow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workflowId, nodes, edges, scope: "FULL" }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Run failed");
+      }
+      const { runId, workflowId: newWorkflowId } = await res.json();
+      if (newWorkflowId && newWorkflowId !== workflowId) {
+        setWorkflowId(newWorkflowId);
+      }
+      setExecutionRunning(runId);
+    } catch (e: any) {
+      console.error("runWorkflow error:", e.message);
+    }
+  },
+
   pushHistory: () => {
     const { nodes, edges, history, historyIndex } = get();
-    // Discard any "future" history when a new action happens
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
     if (newHistory.length > MAX_HISTORY) newHistory.shift();

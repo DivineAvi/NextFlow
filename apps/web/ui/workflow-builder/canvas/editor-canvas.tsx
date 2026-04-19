@@ -45,12 +45,13 @@ function useWorkflowRunPoller() {
         if (!res.ok) return;
 
         const run = await res.json();
-        const statuses: Record<string, { status: string; output?: any }> = {};
+        const statuses: Record<string, { status: string; output?: any; error?: string }> = {};
 
         for (const nodeRun of run.nodeRuns ?? []) {
           statuses[nodeRun.nodeId] = {
             status: nodeRun.status,
             output: nodeRun.outputs?.output,
+            error: nodeRun.error ?? undefined,
           };
         }
 
@@ -266,7 +267,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
         deleteKeyCode={["Delete", "Backspace"]}
       >
         <Background color="#262626" gap={20} />
-        <Controls />
+
         <MiniMap
           position="bottom-right"
           nodeColor="#52525B"
@@ -279,7 +280,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
         />
 
         {/* ── Top-right toolbar ─────────────────────────────────────── */}
-        <Panel position="top-right">
+        <Panel position="bottom-left">
           <div className="flex items-center gap-2">
             {/* Undo / Redo */}
             <button
@@ -309,24 +310,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
               Sample
             </button>
 
-            {/* Run */}
-            <button
-              onClick={handleRun}
-              disabled={execution.isRunning || nodes.length === 0}
-              className="flex items-center gap-1.5 h-8 px-4 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-lg hover:bg-blue-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              {execution.isRunning ? (
-                <>
-                  <Loader2 size={13} className="animate-spin" />
-                  Running…
-                </>
-              ) : (
-                <>
-                  <Play size={13} />
-                  Run
-                </>
-              )}
-            </button>
+
           </div>
 
           {/* Error toast */}

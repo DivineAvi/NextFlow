@@ -7,6 +7,7 @@
 - A free [Clerk](https://clerk.com) account (auth)
 - A free [Google AI Studio](https://aistudio.google.com) key (Gemini)
 - A free [Trigger.dev](https://cloud.trigger.dev) account (task execution)
+- A [Transloadit](https://transloadit.com) account (file uploads)
 
 ## 1. Install dependencies
 
@@ -29,13 +30,34 @@ pnpm db:generate   # generates the Prisma client
 pnpm db:push       # pushes schema to Neon (no migration files)
 ```
 
-## 4. Run the Next.js dev server
+## 4. Configure Transloadit templates
+
+In your [Transloadit dashboard](https://transloadit.com/c/templates/):
+1. Create an **image** template (e.g. `/google/store` robot pointing at your GCS bucket) and copy its ID
+2. Create a **video** template similarly and copy its ID
+3. Add to `apps/web/.env.local`:
+
+```env
+TRANSLOADIT_KEY=<your auth key>
+TRANSLOADIT_SECRET=<your auth secret>
+```
+
+4. Set the template IDs in `apps/web/app/api/transloadit/route.ts`:
+
+```ts
+const TEMPLATE_IDS = {
+  image: "<your image template id>",
+  video: "<your video template id>",
+};
+```
+
+## 5. Run the Next.js dev server
 
 ```bash
 pnpm --filter web dev
 ```
 
-## 5. Run Trigger.dev dev worker (in a second terminal)
+## 6. Run Trigger.dev dev worker (in a second terminal)
 
 ```bash
 cd apps/web
@@ -44,7 +66,7 @@ npx trigger.dev@latest dev
 
 This connects your local Trigger.dev tasks to the cloud dashboard and lets them execute.
 
-## 6. Webhook setup (optional for user sync)
+## 7. Webhook setup (optional for user sync)
 
 In your [Clerk dashboard](https://dashboard.clerk.com):
 1. Go to **Webhooks → Add Endpoint**
@@ -58,9 +80,11 @@ Use [ngrok](https://ngrok.com) or [Cloudflare Tunnel](https://developers.cloudfl
 
 ```
 apps/web/
+├── middleware.ts          # Clerk auth guard (all routes except public ones)
 ├── app/api/           # Next.js API routes
 │   ├── execute-workflow/  # Triggers workflow run via Trigger.dev
 │   ├── runs/          # Fetch run history (polled by history sidebar)
+│   ├── transloadit/   # Returns signed Transloadit assembly params
 │   ├── workflows/     # CRUD for saved workflows
 │   └── webhooks/clerk # Clerk user sync
 ├── trigger/           # Trigger.dev tasks (run on Trigger.dev cloud)

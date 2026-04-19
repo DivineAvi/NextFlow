@@ -1,8 +1,10 @@
 import { ComponentType, memo, SVGProps, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Sparkles } from "lucide-react";
+import { Loader2, Pause, Play, Sparkles } from "lucide-react";
 import type { NodeProps } from "reactflow";
 import { rgba } from "polished";
+import { useCanvasStore } from "@/store/canvas-store";
+import { useShallow } from "zustand/react/shallow";
 
 export type BaseNodeTone = "yellow" | "blue" | "green" | "red" | "orange" | "purple" | "pink" | "gray" | "brown" | "black" | "white";
 export type NODE_STATUS = "RUNNING" | "COMPLETED" | "FAILED" | "PENDING";
@@ -100,33 +102,73 @@ export const BaseNode = memo(function BaseNode({
   children,
   selected,
   icon,
-  Width ,
-  Height ,
-  minWidth ,
+  Width,
+  Height,
+  minWidth,
   minHeight,
   tone = "blue",
 }: BaseNodeProps) {
   const Icon = icon as ComponentType<SVGProps<SVGSVGElement>>;
   const [label, setLabel] = useState<string>(data.label);
+  const { execution, runWorkflow } = useCanvasStore(
+    useShallow((s) => ({
+      execution: s.execution,
+      runWorkflow: s.runWorkflow,
+    }))
+  );
+
+  const isRunning = execution.isRunning;
+  const nodeError: string | undefined = data.error;
+
   return (
-    <div style={{ minWidth: minWidth, minHeight: minHeight , width: Width, height: Height }} className={`flex flex-col`}>
-      {/* Header */}
+    <div
+      style={{ minWidth, minHeight, width: Width, height: Height }}
+      className="group flex flex-col"
+    >
+      {/* Per-node Run Workflow button — shown on hover, left of node */}
+      <button
+        onClick={runWorkflow}
+        disabled={isRunning}
+        className="nodrag nopan whitespace-nowrap group-hover:opacity-100 absolute top-0 right-[102%] opacity-0 transition-all duration-300 flex items-center gap-1.5 h-6 px-2 rounded-lg bg-blue-600 text-white text-[11px] shadow-lg hover:bg-blue-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isRunning ? (
+          <>
+            <Loader2 size={11} className="animate-spin" />
+            Running…
+          </>
+        ) : (
+          <>
+            <Play size={11} />
+            Run Workflow
+          </>
+        )}
+      </button>
+
+      {/* Label row */}
       <div className="flex items-center gap-1 px-1/2 w-fit h-5">
         {Icon && <Icon className="size-3 shrink-0" aria-hidden />}
         <div className="relative h-full">
           <input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            className={`nodrag nopan absolute z-10 left-0 top-1/2 -translate-y-1/2 outline-none text-xs text-[#737373] px-1 py-0.5 rounded-md cursor-text tracking-tight`}
+            className="nodrag nopan absolute z-10 left-0 top-1/2 -translate-y-1/2 outline-none text-xs text-[#737373] px-1 py-0.5 rounded-md cursor-text tracking-tight"
           />
         </div>
       </div>
+
+      {/* Error banner — shown above the node body when execution fails */}
+      {data.status === "FAILED" && nodeError && (
+        <div className="mb-1 flex items-start gap-1.5 rounded-md border border-red-700/60 bg-red-950/70 px-2 py-1.5 text-[10px] text-red-300 leading-snug max-w-[240px]">
+          <Sparkles size={10} className="shrink-0 mt-0.5 text-red-400" />
+          <span className="break-words">{nodeError}</span>
+        </div>
+      )}
 
       {/* Body */}
       <div
         className={`rounded-[12px] border-2 bg-[#262626] text-[#737373] flex-1 transition-all duration-300 ${
           data.status === "RUNNING"
-            ? BASE_NODE_TONES[tone].border + " !border-1 " + "animate-pulse-shadow"
+            ? BASE_NODE_TONES[tone].border + " !border-1 animate-pulse-shadow"
             : data.status === "COMPLETED"
               ? BASE_NODE_TONES[tone].border
               : data.status === "FAILED"
@@ -134,9 +176,12 @@ export const BaseNode = memo(function BaseNode({
                 : selected
                   ? BASE_NODE_TONES[tone].border
                   : "border-zinc-800"
-        }`
-      }
-      style={{ "--pulse-shadow-color": rgba(BASE_NODE_TONES[tone].color, 0.4) as string} as React.CSSProperties}
+        }`}
+        style={
+          {
+            "--pulse-shadow-color": rgba(BASE_NODE_TONES[tone].color, 0.4),
+          } as React.CSSProperties
+        }
       >
         <div className="flex flex-col flex-1 pb-4">{children}</div>
       </div>

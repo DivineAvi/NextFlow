@@ -26,5 +26,20 @@ export const LLMNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
         { label: 'Gemini 2.0 Pro Exp', value: 'gemini-2.0-pro-exp' },
       ],
     },
+    {
+      type: "text",
+      id: "user_prompt",
+      label: "User Prompt",
+      defaultValue: "",
+      placeholder: "Enter user prompt",
+    },
+    {
+      type: "text",
+      id: "system_prompt",
+      label: "System Prompt",
+      defaultValue: "",
+      placeholder: "Enter system prompt",
+    }
+    
   ],
 });

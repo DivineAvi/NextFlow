@@ -5,7 +5,7 @@ import { ControlDefinitionSchema } from './controls';
 export const DataTypeSchema = z.enum(['string', 'image','video', 'number', 'boolean', 'any']);
 
 // 2. Define the exact shape of a Port (Handle)
-export const PortDefinitionSchema = z.object({
+export const HandletDefinitionSchema = z.object({
   id: z.string(),
   label: z.string(),
   type: DataTypeSchema,
@@ -20,8 +20,8 @@ export const NodeDefinitionSchema = z.object({
   title: z.string(),
   category: z.enum(['AI', 'Logic', 'Input', 'Output', 'Transform']),
   description: z.string(),
-  inputs: z.array(PortDefinitionSchema),
-  outputs: z.array(PortDefinitionSchema),
+  inputs: z.array(HandletDefinitionSchema),
+  outputs: z.array(HandletDefinitionSchema),
   controls: z.array(ControlDefinitionSchema).optional().default([]),
 });
 
@@ -29,5 +29,5 @@ export const NodeDefinitionSchema = z.object({
 
 // 4. Extract TypeScript Types automatically!
 export type DataType = z.infer<typeof DataTypeSchema>;
-export type PortDefinition = z.infer<typeof PortDefinitionSchema>;
+export type HandletDefinition = z.infer<typeof HandletDefinitionSchema>;
 export type NodeDefinition = z.infer<typeof NodeDefinitionSchema>;
