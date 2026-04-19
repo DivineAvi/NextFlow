@@ -1,6 +1,4 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -14,17 +12,13 @@ import { EDGE_COLORS } from "@/ui/tones/tones";
 import { useCanvasStore } from "@/store/canvas-store";
 import { cn } from "@nextflow/utils";
 
+export type EDGE_STATUS = "RUNNING" | "COMPLETED" | "FAILED" | "PENDING";
 
 export interface CustomEdgeData {
   tone?: EdgeTone;
   label?: string;
-  isAnimating: boolean;
+  status?: EDGE_STATUS;
 }
-
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function CustomEdge({
   id,
@@ -36,25 +30,27 @@ export function CustomEdge({
   targetPosition,
   selected,
   data,
+  target, // 1. Extract the target node ID from props
 }: EdgeProps<CustomEdgeData>) {
   const { setEdges } = useReactFlow();
   const tone: EdgeTone = data?.tone ?? "zinc";
-  const label = data?.label;
-  const { stroke, glow, badge } = EDGE_COLORS[tone];
-  const [hovered, setHovered] = useState(false);
+  const { stroke } = EDGE_COLORS[tone];
+  
+  // 2. Subscribe to the target node's status from Zustand.
+  // Because this returns a primitive (string/undefined), it's highly performant. 
+  // It will ONLY re-render this specific edge if this specific node's status changes.
+  const targetNodeStatus = useCanvasStore(
+    (s) => s.nodes.find((n) => n.id === target)?.data?.status
+  );
+
+  // 3. Determine if the edge should be animating
+  // It animates if the edge itself is marked as running, OR if the target node is running.
+  const isRunning = data?.status === "RUNNING" || targetNodeStatus === "RUNNING";
+
   const setHoveredEdgeId = useCanvasStore((s) => s.setHoveredEdgeId);
   const hoveredEdgeId = useCanvasStore((s) => s.hoveredEdgeId);
-  const isAnimating = data?.isAnimating ?? false;
+  const hovered = hoveredEdgeId === id;
 
-  useEffect(() => {
-    if (hoveredEdgeId === id) {
-      console.log("hovered edge");
-      setHovered(true);
-    } else {
-      console.log("not hovered edge");
-      setHovered(false);
-    }
-  }, [hoveredEdgeId, id, setHovered]);
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -70,8 +66,6 @@ export function CustomEdge({
 
   return (
     <>
-
-
       <defs>
         <linearGradient
           id={`lg-${id}`}
@@ -82,7 +76,7 @@ export function CustomEdge({
         >
           <stop offset="0%" stopColor={stroke} stopOpacity="0" />
           <stop offset="40%" stopColor={stroke} stopOpacity="0.8" />
-          <stop offset="60%" stopColor={`color-mix(in srgb, ${stroke} 70%, white)`} stopOpacity="1" /> {/* Example: Gold as the mix color */}
+          <stop offset="60%" stopColor={`color-mix(in srgb, ${stroke} 70%, white)`} stopOpacity="1" />
           <stop offset="75%" stopColor={stroke} stopOpacity="0.8" />
           <stop offset="100%" stopColor={stroke} stopOpacity="0" />
           <animateTransform
@@ -95,22 +89,20 @@ export function CustomEdge({
         </linearGradient>
       </defs>
 
-
-      {/* Animated glow line */}
-      {isAnimating ? (
+      {/* 4. Use the derived `isRunning` variable here */}
+      {isRunning ? (
         <path
           d={edgePath}
           fill="none"
           stroke={`url(#lg-${id})`}
-          strokeWidth={3}
+          strokeWidth={4}
           strokeLinecap="round"
           style={{ pointerEvents: "auto" }}
-          onMouseEnter={() => { setHovered(true); console.log("hovered") }}
-          onMouseLeave={() => setHovered(false)}
+          onMouseEnter={() => setHoveredEdgeId(id)}
+          onMouseLeave={() => setHoveredEdgeId(null)}
         />
       ) : null}
 
-      {/* 3. THE ACTUAL BASE EDGE: The crisp center line */}
       <BaseEdge
         path={edgePath}
         style={{
@@ -119,11 +111,8 @@ export function CustomEdge({
           strokeOpacity: selected ? 1 : 0.15,
           transition: "stroke-opacity 0.2s ease-in-out",
         }}
-
       />
 
-
-      {/* Label + delete button — rendered in DOM (not SVG) via EdgeLabelRenderer */}
       <EdgeLabelRenderer>
         <div
           style={{
@@ -132,10 +121,8 @@ export function CustomEdge({
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             pointerEvents: "all",
           }}
-          className="nodrag nopan flex items-center gap-1 "
+          className="nodrag nopan flex items-center gap-1"
         >
-
-          {/* Delete button — visible on hover or selection */}
           <button
             onClick={deleteEdge}
             title="Delete edge"
@@ -143,13 +130,11 @@ export function CustomEdge({
             className={cn(
               "flex h-4 w-4 items-center justify-center rounded-full border",
               "text-white border-none transition-all duration-150",
-              "hover-scale-110 hover:cursor-pointer ",
+              "hover:scale-110 hover:cursor-pointer",
               selected || hovered ? "opacity-100" : "opacity-0",
             )}
           >
-
             <X className="h-2.5 w-2.5" strokeWidth={5} />
-
           </button>
         </div>
       </EdgeLabelRenderer>

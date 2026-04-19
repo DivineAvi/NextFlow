@@ -1,6 +1,6 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node';
 
-export const ImageCropDefinition: NodeDefinition = NodeDefinitionSchema.parse({
+export const ImageCropNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'image_crop',
   title: 'Crop Image',
   category: 'Transform',

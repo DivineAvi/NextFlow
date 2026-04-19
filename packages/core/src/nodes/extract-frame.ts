@@ -1,6 +1,6 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node';
 
-export const ExtractFrameDefinition: NodeDefinition = NodeDefinitionSchema.parse({
+export const ExtractFrameNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'extract_frame',
   title: 'Extract Frame',
   category: 'Transform',

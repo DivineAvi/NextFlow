@@ -1,6 +1,6 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node'; // Adjust path if needed
 
-export const UploadImageDefinition: NodeDefinition = NodeDefinitionSchema.parse({
+export const UploadImageNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'upload_image',
   title: 'Upload Image',
   category: 'Input',

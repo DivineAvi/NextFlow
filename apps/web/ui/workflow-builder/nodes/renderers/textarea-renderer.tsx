@@ -11,6 +11,7 @@ interface TextareaRendererProps {
   tone: Tone;
   initialValue?: string;
   placeholder?: string;
+  connectedTo?: string;
 }
 
 export function TextareaRenderer({
@@ -20,6 +21,7 @@ export function TextareaRenderer({
   initialValue,
   placeholder,
 }: TextareaRendererProps) {
+  
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
   const [localValue, setLocalValue] = useState(initialValue);
   // Sync local state if external data changes (e.g., Undo/Redo)

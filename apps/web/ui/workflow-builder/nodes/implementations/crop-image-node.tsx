@@ -5,10 +5,11 @@ import { NodeRegistry, type NumberControlDef } from "@nextflow/core";
 
 import { HandlerRenderer, LabelRenderer, NumberInputRenderer } from "../renderers";
 import { Crop } from "lucide-react";
+import { NODE_DEFINATIONS } from "../../type";
 
 export function CropImageNode(props: NodeProps) {
   // Get node definition
-  const definition = NodeRegistry['image_crop'];
+  const definition = NODE_DEFINATIONS.ImageCropNodeDefination;
 
   //Extracting inputs and outputs
   const imageInput = definition.inputs.find(i => i.id === 'image_input');

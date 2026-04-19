@@ -8,13 +8,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
-import type { EdgeTone } from "@/ui/workflow-builder/canvas/edges/custom-edge";
+import type { EdgeTone } from "@/ui/tones/tones";
 import { LLMNodeIcon, TextNodeIcon } from "@nextflow/ui";
-
+import {NodeRegistry} from "@nextflow/core";
+import { NODE_DEFINATIONS } from "@/ui/workflow-builder/type";
 /** Lucide icons or custom SVG components. */
 export type SidebarNodeIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
 
 export type NodeCategory = "Input" | "AI" | "Image" | "Video" | "Utility";
+
 
 export interface SidebarNode {
   id: string;
@@ -23,8 +25,6 @@ export interface SidebarNode {
   type: string;
   description: string;
   icon: SidebarNodeIcon;
-  /** Colour hint for the edge that comes out of this node. */
-  tone: EdgeTone;
   category: NodeCategory;
   /** Optional keyboard shortcut hint shown in the dropdown. */
   shortcut?: string;
@@ -32,67 +32,63 @@ export interface SidebarNode {
 
 export const SIDEBAR_NODES: SidebarNode[] = [
   // ── Input ─────────────────────────────────────────────────────────────
-  {
-    id: "text-node",
-    label: "Text",
-    type: "text_node",
-    description: "A free-form text input. Pipe it into any node that accepts a string.",
-    icon: TextNodeIcon,
-    tone: "yellow",
-    category: "Input",
-    shortcut: "T",
-  },
-  {
-    id: "upload-image-node",
-    label: "Upload Image",
-    type: "upload_image",
-    description: "Upload a JPG, PNG, WebP, or GIF and expose it as an image URL.",
-    icon: ImageIcon,
-    tone: "orange",
-    category: "Input",
-  },
-  {
-    id: "upload-video-node",
-    label: "Upload Video",
-    type: "upload_video",
-    description: "Upload an MP4, MOV, or WebM and expose it as a video URL.",
-    icon: Film,
-    tone: "orange",
-    category: "Input",
-  },
 
-  // ── AI ────────────────────────────────────────────────────────────────
   {
-    id: "llm-node",
-    label: "Run LLM",
-    type: "llm_node",
-    description: "Call Gemini (or any configured model) with a prompt and optional images.",
+    id: NODE_DEFINATIONS.LLMNodeDefination.type,
+    label: NODE_DEFINATIONS.LLMNodeDefination.title,
+    type: NODE_DEFINATIONS.LLMNodeDefination.type,
+    description: NODE_DEFINATIONS.LLMNodeDefination.description,
     icon: LLMNodeIcon,
-    tone: "blue",
-    category: "AI",
-    shortcut: "L",
+    category: 'AI',
+    shortcut: 'Ctrl+L',
+  },
+  {
+    id: NODE_DEFINATIONS.TextNodeDefination.type,
+    label: NODE_DEFINATIONS.TextNodeDefination.title,
+    type: NODE_DEFINATIONS.TextNodeDefination.type,
+    description: NODE_DEFINATIONS.TextNodeDefination.description,
+    icon: TextNodeIcon,
+    category: 'Input',
+    shortcut: 'Ctrl+T',
+  },
+  {
+    id: NODE_DEFINATIONS.ImageCropNodeDefination.type,
+    label: NODE_DEFINATIONS.ImageCropNodeDefination.title,
+    type: NODE_DEFINATIONS.ImageCropNodeDefination.type,
+    description: NODE_DEFINATIONS.ImageCropNodeDefination.description,
+    icon: ImageIcon,
+    category: 'Image',
+    shortcut: 'Ctrl+I',
   },
 
-  // ── Image ─────────────────────────────────────────────────────────────
   {
-    id: "crop-image-node",
-    label: "Crop Image",
-    type: "crop_image",
-    description: "Crop an image to a percentage-based rectangle via FFmpeg.",
-    icon: Crop,
-    tone: "orange",
-    category: "Image",
+    id: NODE_DEFINATIONS.ExtractFrameNodeDefination.type,
+    label: NODE_DEFINATIONS.ExtractFrameNodeDefination.title,
+    type: NODE_DEFINATIONS.ExtractFrameNodeDefination.type,
+    description: NODE_DEFINATIONS.ExtractFrameNodeDefination.description,
+    icon: Film,
+    category: 'Video',
+    shortcut: 'Ctrl+E',
   },
   {
-    id: "extract-frame-node",
-    label: "Extract Frame",
-    type: "extract_frame",
-    description: "Grab a single frame from a video at a given timestamp.",
-    icon: FileText,
-    tone: "zinc",
-    category: "Video",
+    id: NODE_DEFINATIONS.UploadImageNodeDefination.type,
+    label: NODE_DEFINATIONS.UploadImageNodeDefination.title,
+    type: NODE_DEFINATIONS.UploadImageNodeDefination.type,
+    description: NODE_DEFINATIONS.UploadImageNodeDefination.description,
+    icon: ImageIcon,
+    category: 'Input',
+    shortcut: 'Ctrl+U',
+  },
+  {
+    id: NODE_DEFINATIONS.UploadVideoNodeDefination.type,
+    label: NODE_DEFINATIONS.UploadVideoNodeDefination.title,
+    type: NODE_DEFINATIONS.UploadVideoNodeDefination.type,
+    description: NODE_DEFINATIONS.UploadVideoNodeDefination.description,
+    icon: Film,
+    category: 'Input',
+    shortcut: 'Ctrl+V',
   },
 ];
-
+  
 /** All unique categories in display order. */
 export const NODE_CATEGORIES: NodeCategory[] = ["Input", "AI", "Image", "Video", "Utility"];

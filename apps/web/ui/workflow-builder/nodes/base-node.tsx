@@ -5,6 +5,7 @@ import type { NodeProps } from "reactflow";
 import { rgba } from "polished";
 
 export type BaseNodeTone = "yellow" | "blue" | "green" | "red" | "orange" | "purple" | "pink" | "gray" | "brown" | "black" | "white";
+export type NODE_STATUS = "RUNNING" | "COMPLETED" | "FAILED" | "PENDING";
 
 const BASE_NODE_TONES: Record<BaseNodeTone, Record<string, string>> = {
   yellow: {
@@ -107,7 +108,7 @@ export const BaseNode = memo(function BaseNode({
 }: BaseNodeProps) {
   const Icon = icon as ComponentType<SVGProps<SVGSVGElement>>;
   const [label, setLabel] = useState<string>(data.label);
-  console.log(data);
+  console.log("selected node data : ", data );
   return (
     <div style={{ minWidth: minWidth, minHeight: minHeight , width: Width, height: Height }} className={`flex flex-col`}>
       {/* Header */}

@@ -1,6 +1,6 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node'; // Adjust path if needed
 
-export const UploadVideoDefinition: NodeDefinition = NodeDefinitionSchema.parse({
+export const UploadVideoNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'upload_video',
   title: 'Upload Video',
   category: 'Input',

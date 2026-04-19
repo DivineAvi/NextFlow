@@ -6,10 +6,11 @@ import { NodeRegistry, type FileUploadControlDef } from "@nextflow/core";
 
 import { HandlerRenderer, LabelRenderer, UploadFileRenderer } from "../renderers";
 import { Image as ImageIcon } from "lucide-react"; // Fallback icon if needed
+import { NODE_DEFINATIONS } from "../../type";
 
 export function UploadImageNode(props: NodeProps) {
   // Get Node Definition
-  const definition = NodeRegistry['upload_image'];
+  const definition = NODE_DEFINATIONS.UploadImageNodeDefination;
 
   // Extract outputs
   const imageOutput = definition.outputs.find(o => o.id === 'image_output');

@@ -4,8 +4,6 @@ import {
   applyEdgeChanges, 
   Node, 
   Edge, 
-  NodeChange, 
-  EdgeChange, 
   OnNodesChange, 
   OnEdgesChange 
 } from "reactflow";
@@ -25,7 +23,7 @@ interface CanvasStore {
   
   // --- Data Management Actions ---
   updateNodeData: (nodeId: string, data: any) => void;
-
+  updateEdgeData: (edgeId: string, data: any) => void;
   /** Used by Sidebar to request a node creation */
   requestAddNode: (type: string) => void;
   clearPendingNode: () => void;
@@ -50,18 +48,29 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     set({ edges: applyEdgeChanges(changes, get().edges) });
   },
 
-  // Update node data
-  updateNodeData: (nodeId, data) => {
+  updateNodeData: (nodeId: string, newData: Record<string, any>) => 
     set((state) => ({
       nodes: state.nodes.map((node) => {
         if (node.id === nodeId) {
-          return { ...node, data: { ...node.data} };
+          // MUST return a new node object AND a new data object
+          return { 
+            ...node, 
+            data: { ...node.data, ...newData } 
+          };
         }
         return node;
       }),
-    }));
-  },
+    })),
 
+  updateEdgeData: (edgeId: string, newData: Record<string, any>) =>
+    set((state) => ({
+      edges: state.edges.map((edge) => {
+        if (edge.id === edgeId) {
+          return { ...edge, data: { ...edge.data, ...newData } };
+        }
+        return edge;
+      }),
+    })),
   // Bridge actions
   requestAddNode: (type) => set({ pendingNodeType: type }),
   clearPendingNode: () => set({ pendingNodeType: null }),

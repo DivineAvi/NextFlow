@@ -4,10 +4,11 @@ import { BaseNode } from "../base-node";
 import { NodeRegistry } from "@nextflow/core";
 import { TextareaRenderer, LabelRenderer, HandlerRenderer, CopyButton } from "../renderers";
 import { TextNodeIcon } from "@nextflow/ui";
+import { NODE_DEFINATIONS } from "../../type";
 
 export function TextNode(props: NodeProps) {
   // Get Node Definition
-  const definition = NodeRegistry['text_input'];
+  const definition = NODE_DEFINATIONS.TextNodeDefination;
   
   // Extract inputs and outputs
   const textOutput = definition.outputs.find(o => o.id === 'text_output');
@@ -53,12 +54,12 @@ export function TextNode(props: NodeProps) {
           />
         )}
       </div>
-      <div className="mt-2 px-3 pb-2 border-t border-white/10 pt-2">
+      {/* <div className="mt-2 px-3 pb-2 border-t border-white/10 pt-2">
         <p className="text-[9px] uppercase text-zinc-500 font-bold mb-1">Live Node Data</p>
         <pre className="text-[9px] bg-black/30 p-1 rounded overflow-hidden text-green-400 font-mono">
           {JSON.stringify(props, null, 2)}
         </pre>
-      </div>
+      </div> */}
     </BaseNode>
   );
 }

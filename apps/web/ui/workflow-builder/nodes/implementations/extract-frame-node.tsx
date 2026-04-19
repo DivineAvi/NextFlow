@@ -6,10 +6,11 @@ import { NodeRegistry, type NumberControlDef } from "@nextflow/core";
 import { HandlerRenderer, LabelRenderer } from "../renderers";
 import { NumberInputRenderer } from "../renderers"; // Upgraded from TextField
 import { Film } from "lucide-react"; // Or whatever icon you prefer
+import { NODE_DEFINATIONS } from "../../type";
 
 export function ExtractFrameNode(props: NodeProps) {
   // Get Node Definition
-  const definition = NodeRegistry['extract_frame'];
+  const definition = NODE_DEFINATIONS.ExtractFrameNodeDefination;
 
   // Extract inputs and outputs
   const videoInput = definition.inputs.find(i => i.id === 'video_input');

@@ -5,10 +5,11 @@ import { UploadFileRenderer } from "../renderers";
 import { HandlerRenderer, LabelRenderer } from "../renderers";
 import { NodeRegistry, type FileUploadControlDef } from "@nextflow/core";
 import { VideoIcon } from "lucide-react";
+import { NODE_DEFINATIONS } from "../../type";
 
 export function UploadVideoNode(props: NodeProps) {
   // Get Node Definition
-  const defination = NodeRegistry['upload_video'];
+  const defination = NODE_DEFINATIONS.UploadVideoNodeDefination;
 
   // Extract outputs
   const videoOutput = defination.outputs.find(o => o.id === 'video_output');

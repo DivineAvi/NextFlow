@@ -4,10 +4,11 @@ import { BaseNode } from "../base-node";
 import { TextareaRenderer, LabelRenderer, HandlerRenderer, SelectorRenderer } from "../renderers";
 import { LLMNodeIcon } from "@nextflow/ui";
 import { NodeRegistry } from "@nextflow/core";
+import { NODE_DEFINATIONS } from "../../type";
 
 export function LLMNode(props: NodeProps) {
   // Get Node Definition
-  const definition = NodeRegistry['llm_generate'];
+  const definition = NODE_DEFINATIONS.LLMNodeDefination;
 
   // Extract inputs and outputs
   const textOutput = definition.outputs.find(o => o.id === 'text_output');

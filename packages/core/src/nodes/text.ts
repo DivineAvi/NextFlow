@@ -1,6 +1,6 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node';
 
-export const TextInputDefinition: NodeDefinition = NodeDefinitionSchema.parse({
+export const TextInputNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'text_input',
   title: 'Text Node',
   category: 'Input',

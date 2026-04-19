@@ -1,9 +1,9 @@
 import { NodeDefinitionSchema, type NodeDefinition } from "../schema/node";
 
 // We use .parse() to ensure this definition strictly adheres to our schema
-export const LLMGenerateDefinition: NodeDefinition = NodeDefinitionSchema.parse({
+export const LLMNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'llm_node',
-  title: 'LLM Generation',
+  title: 'LLM',
   category: 'AI',
   description: 'Generates text using a language model',
   inputs: [
