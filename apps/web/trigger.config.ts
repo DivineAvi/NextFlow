@@ -4,6 +4,7 @@ export default defineConfig({
   project: "proj_nextflow_demo",
   runtime: "node",
   logLevel: "log",
+  maxDuration: 3600,
   retries: {
     enabledInDev: true,
     default: {

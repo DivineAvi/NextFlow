@@ -1,7 +1,7 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node';
 
 export const ImageCropNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
-  type: 'image_crop',
+  type: 'image_crop_node',
   title: 'Crop Image',
   category: 'Transform',
   description: 'Crops an image based on percentage coordinates and dimensions',

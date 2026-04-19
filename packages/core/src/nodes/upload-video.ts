@@ -1,7 +1,7 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node'; // Adjust path if needed
 
 export const UploadVideoNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
-  type: 'upload_video',
+  type: 'upload_video_node',
   title: 'Upload Video',
   category: 'Input',
   description: 'Uploads a local video file and provides it to the workflow',

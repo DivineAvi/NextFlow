@@ -1,7 +1,7 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node'; // Adjust path if needed
 
 export const UploadImageNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
-  type: 'upload_image',
+  type: 'upload_image_node',
   title: 'Upload Image',
   category: 'Input',
   description: 'Uploads a local image file and provides it to the workflow',

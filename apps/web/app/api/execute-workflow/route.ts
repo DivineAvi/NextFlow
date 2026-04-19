@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@nextflow/core";
-import { tasks } from "@trigger.dev/sdk/v3";
 import { workflowOrchestrator } from "@/trigger/orchestrator";
 
 export async function POST(request: Request) {
@@ -11,32 +10,79 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { workflowId, nodes, edges } = await request.json();
+    const body = await request.json();
+    const { nodes, edges, workflowId: bodyWorkflowId, scope = "FULL" } = body;
 
     if (!nodes || !edges) {
       return NextResponse.json(
-        { error: "Must provide nodes and edges to run." },
+        { error: "nodes and edges are required" },
         { status: 400 }
       );
     }
 
-    // 1. Create a WorkflowRun record
+    // Upsert the user record (Clerk → DB sync)
+    const user = await db.user.upsert({
+      where: { clerkId: userId },
+      update: {},
+      create: {
+        clerkId: userId,
+        email: `user-${userId}@nextflow.app`,
+      },
+    });
+
+    // Resolve the workflow: use supplied ID if it's valid, otherwise create a new one
+    let workflowId = bodyWorkflowId && bodyWorkflowId !== "temp-draft-id"
+      ? bodyWorkflowId
+      : null;
+
+    if (workflowId) {
+      // Verify the workflow belongs to this user
+      const existing = await db.workflow.findUnique({
+        where: { id: workflowId },
+        select: { userId: true },
+      });
+      if (!existing || existing.userId !== user.id) workflowId = null;
+    }
+
+    if (!workflowId) {
+      const workflow = await db.workflow.create({
+        data: {
+          name: "Untitled Workflow",
+          definition: { nodes, edges } as any,
+          userId: user.id,
+        },
+      });
+      workflowId = workflow.id;
+    } else {
+      // Keep definition in sync
+      await db.workflow.update({
+        where: { id: workflowId },
+        data: { definition: { nodes, edges } as any },
+      });
+    }
+
+    // Create a run record
     const run = await db.workflowRun.create({
       data: {
         workflowId,
+        scope,
         status: "PENDING",
       },
     });
 
-    // 2. Trigger the orchestrator asynchronously inside Trigger.dev
-    await tasks.trigger(workflowOrchestrator, {
+    // Fire-and-forget — orchestrator runs inside Trigger.dev
+    await workflowOrchestrator.trigger({
       workflowRunId: run.id,
       nodes,
       edges,
+      scope,
     });
 
-    // 3. Return the ID immediately so the client can begin polling or opening the history view
-    return NextResponse.json({ runId: run.id, status: run.status });
+    return NextResponse.json({
+      runId: run.id,
+      workflowId,
+      status: run.status,
+    });
   } catch (error: any) {
     console.error("Execute Workflow Error:", error);
     return NextResponse.json(

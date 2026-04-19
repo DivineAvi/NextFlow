@@ -1,28 +1,41 @@
 import { verifyWebhook } from "@clerk/backend/webhooks";
+import { db } from "@nextflow/core";
 
-/**
- * Clerk Dashboard → Webhooks → Add endpoint → URL: /api/webhooks/clerk
- * Subscribe to e.g. user.created, user.updated, user.deleted.
- * Set signing secret as CLERK_WEBHOOK_SIGNING_SECRET in .env.local.
- */
 export async function POST(request: Request) {
   try {
     const evt = await verifyWebhook(request);
 
     switch (evt.type) {
       case "user.created":
-      case "user.updated":
-        // Sync user to your DB (Prisma, Drizzle, etc.)
+      case "user.updated": {
+        const { id, email_addresses, primary_email_address_id } = evt.data;
+        const primaryEmail =
+          email_addresses.find((e) => e.id === primary_email_address_id)
+            ?.email_address ?? `user-${id}@nextflow.app`;
+
+        await db.user.upsert({
+          where: { clerkId: id },
+          update: { email: primaryEmail },
+          create: { clerkId: id, email: primaryEmail },
+        });
         break;
-      case "user.deleted":
+      }
+
+      case "user.deleted": {
+        const { id } = evt.data;
+        if (id) {
+          await db.user.deleteMany({ where: { clerkId: id } });
+        }
         break;
+      }
+
       default:
         break;
     }
 
     return new Response("OK", { status: 200 });
   } catch (err) {
-    console.error("Clerk webhook verification failed:", err);
+    console.error("Clerk webhook error:", err);
     return new Response("Webhook verification failed", { status: 400 });
   }
 }

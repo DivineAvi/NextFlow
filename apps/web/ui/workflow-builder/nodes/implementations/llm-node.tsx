@@ -3,132 +3,137 @@ import { Position } from "reactflow";
 import { BaseNode } from "../base-node";
 import { TextareaRenderer, LabelRenderer, HandlerRenderer, SelectorRenderer } from "../renderers";
 import { LLMNodeIcon } from "@nextflow/ui";
-import { NodeRegistry } from "@nextflow/core";
 import { NODE_DEFINATIONS } from "../../type";
+import { CopyButton } from "../renderers";
 
 export function LLMNode(props: NodeProps) {
-  // Get Node Definition
   const definition = NODE_DEFINATIONS.LLMNodeDefination;
 
-  // Extract inputs and outputs
-  const textOutput = definition.outputs.find(o => o.id === 'text_output');
-  const systemPromptInput = definition.inputs.find(i => i.id === 'system_prompt');
-  const userPromptInput = definition.inputs.find(i => i.id === 'user_prompt');
-  const imageInput = definition.inputs.find(i => i.id === 'image_input');
+  const textOutput      = definition.outputs.find((o) => o.id === "text_output")!;
+  const systemPromptIn  = definition.inputs.find((i) => i.id === "system_prompt")!;
+  const userPromptIn    = definition.inputs.find((i) => i.id === "user_prompt")!;
+  const imageIn         = definition.inputs.find((i) => i.id === "image_input")!;
 
-  // Extract model control
-  const rawModelControl = definition.controls?.find(c => c.id === 'model');
-  const modelControl = rawModelControl?.type === 'select' ? rawModelControl : null;
+  const rawModel = definition.controls?.find((c) => c.id === "model");
+  const modelControl = rawModel?.type === "select" ? rawModel : null;
+
+  const output: string | undefined = props.data.output;
 
   return (
-    <BaseNode {...props} minWidth="220px" icon={LLMNodeIcon}>
-      {/* Handles row: Input (Prompt, Image), Output (Text) */}
+    <BaseNode {...props} minWidth="240px" icon={LLMNodeIcon} tone="yellow">
+      {/* ── Output handle row ─────────────────────────────────────────── */}
       <div className="relative flex px-4 h-7 w-full items-center justify-end">
-        {/* Right: Output handle */}
-        <div className="flex items-center h-full">
-          <LabelRenderer htmlFor={textOutput!.id} tone="dark">
-            {textOutput!.label}
-          </LabelRenderer>
+        <LabelRenderer htmlFor={textOutput.id} tone="dark">
+          {textOutput.label}
+        </LabelRenderer>
+        <HandlerRenderer
+          label={textOutput.label}
+          id={textOutput.id}
+          handleType="source"
+          handlerDataType={textOutput.type}
+          description={textOutput.description || "The LLM-generated text"}
+          tone="yellow"
+          position={Position.Right}
+        />
+      </div>
+
+      {/* ── System Prompt ─────────────────────────────────────────────── */}
+      <div className="relative flex px-3 gap-2 items-center h-7">
+        <HandlerRenderer
+          label={systemPromptIn.label}
+          id={systemPromptIn.id}
+          handleType="target"
+          handlerDataType={systemPromptIn.type}
+          description={systemPromptIn.description}
+          tone="yellow"
+          position={Position.Left}
+        />
+        <LabelRenderer htmlFor={systemPromptIn.id} tone="dark">
+          {systemPromptIn.label}
+        </LabelRenderer>
+      </div>
+      <div className="px-3 pb-1">
+        <TextareaRenderer
+          id={systemPromptIn.id}
+          nodeId={props.id}
+          tone="dark"
+          initialValue={props.data[systemPromptIn.id]}
+          placeholder="You are a helpful assistant…"
+        />
+      </div>
+
+      {/* ── User Prompt ───────────────────────────────────────────────── */}
+      <div className="relative flex px-3 gap-2 items-center h-7">
+        <HandlerRenderer
+          label={userPromptIn.label}
+          id={userPromptIn.id}
+          handleType="target"
+          handlerDataType={userPromptIn.type}
+          description={userPromptIn.description}
+          tone="yellow"
+          position={Position.Left}
+        />
+        <LabelRenderer htmlFor={userPromptIn.id} tone="dark">
+          {userPromptIn.label}
+        </LabelRenderer>
+      </div>
+      <div className="px-3 pb-1">
+        <TextareaRenderer
+          nodeId={props.id}
+          id={userPromptIn.id}
+          tone="dark"
+          initialValue={props.data[userPromptIn.id]}
+          placeholder="Enter the user prompt here…"
+        />
+      </div>
+
+      {/* ── Model selector + Image handle ─────────────────────────────── */}
+      <div className="flex px-3 pb-2 items-center gap-3">
+        <div className="relative flex items-center gap-2">
           <HandlerRenderer
-            label={textOutput!.label}
-            id={textOutput!.id}
-            handleType="source"
-            handlerDataType={textOutput!.type}
-            description={textOutput!.description || "The LLM-generated text"}
-            tone="yellow"
-            position={Position.Right}
+            label={imageIn.label}
+            id={imageIn.id}
+            handleType="target"
+            handlerDataType={imageIn.type}
+            description={imageIn.description}
+            tone="blue"
+            position={Position.Left}
           />
+          <LabelRenderer htmlFor={imageIn.id} tone="dark">
+            {imageIn.label}
+          </LabelRenderer>
         </div>
+
+        {modelControl && (
+          <div className="flex items-center gap-2 ml-auto">
+            <LabelRenderer htmlFor={modelControl.id} tone="dark">
+              {modelControl.label}
+            </LabelRenderer>
+            <SelectorRenderer
+              id={modelControl.id}
+              nodeId={props.id}
+              tone="dark"
+              value={props.data[modelControl.id] || modelControl.defaultValue}
+              options={modelControl.options}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Left: Input handles */}
-      <div className="relative px-3 flex gap-2 items-center h-full">
-        {/* Prompt Input */}
-        <LabelRenderer htmlFor={systemPromptInput!.id} tone="dark">
-          {systemPromptInput!.label}
-        </LabelRenderer>
-        <HandlerRenderer
-          label={systemPromptInput!.label}
-          id={systemPromptInput!.id}
-          handleType="target"
-          handlerDataType={systemPromptInput!.type}
-          description={systemPromptInput!.description || "Input prompt text"}
-          tone="yellow"
-          position={Position.Left}
-        />
-      </div>
-      {/* System prompt field */}
-      <div className="px-3 p-1">
-        <TextareaRenderer
-          id={systemPromptInput!.id}
-          nodeId={props.id}
-          tone="dark"
-          initialValue={props.data[systemPromptInput!.id]}
-          placeholder="You are a helpful assistant..."
-        />
-      </div>
-
-      {/* Left: Input handles */}
-      <div className="relative px-3 flex gap-2 items-center h-full">
-        {/* Prompt Input */}
-        <LabelRenderer htmlFor={userPromptInput!.id} tone="dark">
-          {userPromptInput!.label}
-        </LabelRenderer>
-        <HandlerRenderer
-          label={userPromptInput!.label}
-          id={userPromptInput!.id}
-          handleType="target"
-          handlerDataType={userPromptInput!.type}
-          description={userPromptInput!.description || "Input prompt text"}
-          tone="yellow"
-          position={Position.Left}
-        />
-      </div>
-
-      {/* User prompt field */}
-      <div className="px-3 p-1">
-        <TextareaRenderer
-          nodeId={props.id}
-          id={userPromptInput!.id}
-          tone="dark"
-          initialValue={props.data[userPromptInput!.id]}
-          placeholder="Enter the user prompt here..."
-        />
-      </div>
-
-      <div className="flex px-3 justify-between items-center gap-5">
-        <div className="flex items-center gap-2 h-full flex-1">
-          {modelControl && (
-            <>
-              <LabelRenderer htmlFor={modelControl.id} tone="dark">
-                {modelControl.label}
-              </LabelRenderer>
-              <SelectorRenderer
-                id={modelControl.id}
-                nodeId={props.id}
-                tone="dark"
-                value={props.data[modelControl.id] || modelControl.defaultValue}
-                options={modelControl.options}
-              />
-            </>
-          )}
+      {/* ── Inline output (shown after execution) ─────────────────────── */}
+      {output && (
+        <div className="mx-3 mb-3 rounded-md border border-zinc-700 bg-[#171717] overflow-hidden">
+          <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-700">
+            <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-semibold">
+              Output
+            </span>
+            <CopyButton value={output} />
+          </div>
+          <div className="p-2 max-h-40 overflow-y-auto text-[11px] text-zinc-300 whitespace-pre-wrap leading-relaxed">
+            {output}
+          </div>
         </div>
-      </div>
-
-      <div className="relative flex items-center h-full px-3 p-1">
-        <HandlerRenderer
-          label={imageInput!.label}
-          id={imageInput!.id}
-          handleType="target"
-          handlerDataType={imageInput!.type}
-          description={imageInput!.description || "Image input"}
-          tone="blue"
-          position={Position.Left}
-        />
-        <LabelRenderer htmlFor={imageInput!.id} tone="dark">
-          {imageInput!.label}
-        </LabelRenderer>
-      </div>
+      )}
     </BaseNode>
   );
 }

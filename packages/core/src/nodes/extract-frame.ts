@@ -1,7 +1,7 @@
 import { NodeDefinitionSchema, NodeDefinition } from '../schema/node';
 
 export const ExtractFrameNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
-  type: 'extract_frame',
+  type: 'extract_frame_node',
   title: 'Extract Frame',
   category: 'Transform',
   description: 'Extracts a single image frame from a video at a specific timestamp',

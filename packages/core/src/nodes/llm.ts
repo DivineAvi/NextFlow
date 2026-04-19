@@ -1,30 +1,30 @@
 import { NodeDefinitionSchema, type NodeDefinition } from "../schema/node";
 
-// We use .parse() to ensure this definition strictly adheres to our schema
 export const LLMNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'llm_node',
   title: 'LLM',
   category: 'AI',
-  description: 'Generates text using a language model',
+  description: 'Generates text using a Google Gemini language model',
   inputs: [
-    { id: 'system_prompt', label: 'System Prompt', type: 'string', acceptsMultiple: false, required: true },
-    { id: 'user_prompt', label: 'User Prompt', type: 'string', acceptsMultiple: false, required: true },
-    { id: 'image_input', label: 'Image', type: 'image', acceptsMultiple: true, required: false },
+    { id: 'system_prompt', label: 'System Prompt', type: 'string', acceptsMultiple: false, required: false, description: 'Optional system instructions for the model' },
+    { id: 'user_prompt',   label: 'User Prompt',   type: 'string', acceptsMultiple: false, required: true,  description: 'The user message to send to the model' },
+    { id: 'image_input',   label: 'Image',          type: 'image',  acceptsMultiple: true,  required: false, description: 'Optional image(s) for multimodal generation' },
   ],
   outputs: [
-    { id: 'text_output', label: 'Output', type: 'string', required: true },
+    { id: 'text_output', label: 'Output', type: 'string', required: true, description: 'The LLM-generated text response' },
   ],
   controls: [
     {
       type: 'select',
       id: 'model',
       label: 'Model',
-      defaultValue: 'gpt-4o',
+      defaultValue: 'gemini-1.5-flash',
       options: [
-        { label: 'GPT-4o (OpenAI)', value: 'gpt-4o' },
-        { label: 'Claude 3.5 Sonnet', value: 'claude-3-5-sonnet' },
-        { label: 'Llama 3 (Meta)', value: 'llama-3' }
-      ]
-    }
-  ]
+        { label: 'Gemini 1.5 Flash',   value: 'gemini-1.5-flash' },
+        { label: 'Gemini 1.5 Pro',     value: 'gemini-1.5-pro' },
+        { label: 'Gemini 2.0 Flash',   value: 'gemini-2.0-flash' },
+        { label: 'Gemini 2.0 Pro Exp', value: 'gemini-2.0-pro-exp' },
+      ],
+    },
+  ],
 });

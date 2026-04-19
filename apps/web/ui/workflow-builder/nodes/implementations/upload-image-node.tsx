@@ -1,63 +1,47 @@
 import type { NodeProps } from "reactflow";
 import { Position } from "reactflow";
 import { BaseNode } from "../base-node";
-import { NodeRegistry, type FileUploadControlDef } from "@nextflow/core";
-
-
 import { HandlerRenderer, LabelRenderer, UploadFileRenderer } from "../renderers";
-import { Image as ImageIcon } from "lucide-react"; // Fallback icon if needed
+import { Image as ImageIcon } from "lucide-react";
 import { NODE_DEFINATIONS } from "../../type";
+import type { FileUploadControlDef } from "@nextflow/core";
 
 export function UploadImageNode(props: NodeProps) {
-  // Get Node Definition
   const definition = NODE_DEFINATIONS.UploadImageNodeDefination;
+  const imageOutput = definition.outputs.find((o) => o.id === "image_output")!;
 
-  // Extract outputs
-  const imageOutput = definition.outputs.find(o => o.id === 'image_output');
-
-  // Extract file upload control
-  const rawUploadControl = definition.controls?.find(c => c.id === 'image_file');
-  const uploadControl = rawUploadControl?.type === 'file_upload' ? rawUploadControl : null;
+  const rawUpload = definition.controls?.find((c) => c.id === "image_file");
+  const uploadControl = rawUpload?.type === "file_upload" ? (rawUpload as FileUploadControlDef) : null;
 
   return (
-    <BaseNode {...props} Width="220px" icon={ImageIcon}>
-      {/* Handles row */}
-      <div className="relative flex px-4 h-7 w-full items-center justify-end ">
-        <div className="flex items-center h-full">
-          <LabelRenderer htmlFor={imageOutput!.id} tone="dark">
-            {imageOutput!.label}
-          </LabelRenderer>
-          <HandlerRenderer
-            label={imageOutput!.label}
-            id={imageOutput!.id}
-            handleType="source"
-            handlerDataType={imageOutput!.type}
-            description={imageOutput!.description || "The uploaded image URL"}
-            tone="blue"
-            position={Position.Right}
-
-          />
-        </div>
+    <BaseNode {...props} Width="220px" icon={ImageIcon} tone="blue">
+      {/* Output handle */}
+      <div className="relative flex px-4 h-7 w-full items-center justify-end">
+        <LabelRenderer htmlFor={imageOutput.id} tone="dark">
+          {imageOutput.label}
+        </LabelRenderer>
+        <HandlerRenderer
+          label={imageOutput.label}
+          id={imageOutput.id}
+          handleType="source"
+          handlerDataType={imageOutput.type}
+          description={imageOutput.description ?? "The uploaded image"}
+          tone="blue"
+          position={Position.Right}
+        />
       </div>
 
-      {/* Content row */}
-      <div className="px-3 pt-1 flex gap-2 items-center">
+      {/* File picker */}
+      <div className="px-3 pb-3">
         {uploadControl && (
-          <>
-            <LabelRenderer htmlFor={uploadControl.id} tone="dark">
-              {uploadControl.label}
-            </LabelRenderer>
-            <div className="flex-1">
-              <UploadFileRenderer
-                id={uploadControl.id}
-                nodeId={props.id}
-                tone="dark"
-                // Passes 'image' so your renderer knows to set accept="image/*"
-                fileType={uploadControl.fileType}
-                placeholder={uploadControl.placeholder}
-              />
-            </div>
-          </>
+          <UploadFileRenderer
+            id={uploadControl.id}
+            nodeId={props.id}
+            tone="dark"
+            fileType={uploadControl.fileType}
+            placeholder={uploadControl.placeholder ?? "Add Image"}
+            initialValue={props.data[uploadControl.id]}
+          />
         )}
       </div>
     </BaseNode>

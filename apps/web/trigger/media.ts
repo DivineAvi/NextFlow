@@ -1,20 +1,34 @@
 import { task } from "@trigger.dev/sdk/v3";
-import ffmpeg from "fluent-ffmpeg";
-import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
 
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+const execFileAsync = promisify(execFile);
 
-/**
- * Helper to upload to transloadit or a dummy mock for now.
- * In production this would post to Transloadit's REST API.
- */
-async function uploadToTransloadit(filePath: string, fileType: string): Promise<string> {
-  // As this handles a robust assignment requirement: "Output should be cropped image URL (uploaded via Transloadit)"
-  // Since Transloadit Auth Keys were not provided, we mock the result string or use an external bucket.
-  return `https://dummy-bucket.s3.amazonaws.com/${path.basename(filePath)}`;
+// Upload to Transloadit or return a placeholder URL for now.
+// When real Transloadit keys are available, replace this with:
+//   POST https://api2.transloadit.com/assemblies with auth + file buffer
+async function uploadProcessedFile(filePath: string): Promise<string> {
+  const fileName = path.basename(filePath);
+  const fileBuffer = await fs.readFile(filePath);
+  const base64 = fileBuffer.toString("base64");
+  const ext = path.extname(filePath).replace(".", "") || "jpg";
+  // Return as base64 data URI so downstream nodes (e.g. LLM) can consume it immediately
+  return `data:image/${ext};base64,${base64}`;
+}
+
+async function findFfmpeg(): Promise<string> {
+  for (const candidate of ["/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg", "ffmpeg"]) {
+    try {
+      await execFileAsync(candidate, ["-version"]);
+      return candidate;
+    } catch {
+      // not found here, try next
+    }
+  }
+  throw new Error("ffmpeg not found. Please install ffmpeg on the system.");
 }
 
 export const cropImageTask = task({
@@ -27,42 +41,38 @@ export const cropImageTask = task({
     widthPercent: number;
     heightPercent: number;
   }) => {
+    const { imageUrl, xPercent, yPercent, widthPercent, heightPercent } = payload;
+
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "nextflow-crop-"));
+    const inputPath = path.join(tmpDir, "input.jpg");
+    const outputPath = path.join(tmpDir, "output.jpg");
+
     try {
-      const { imageUrl, xPercent, yPercent, widthPercent, heightPercent } = payload;
-      
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'trigger-crop-'));
-      const inputPath = path.join(tmpDir, 'input.jpg');
-      const outputPath = path.join(tmpDir, 'output.jpg');
+      // Download or decode the image
+      if (imageUrl.startsWith("data:")) {
+        const [, base64Data] = imageUrl.split(",");
+        await fs.writeFile(inputPath, Buffer.from(base64Data, "base64"));
+      } else {
+        const res = await fetch(imageUrl);
+        await fs.writeFile(inputPath, Buffer.from(await res.arrayBuffer()));
+      }
 
-      // Download
-      const res = await fetch(imageUrl);
-      const buffer = await res.arrayBuffer();
-      await fs.writeFile(inputPath, Buffer.from(buffer));
+      const ffmpeg = await findFfmpeg();
 
-      // FFmpeg crop filter: crop=w:h:x:y
-      // w = in_w * (widthPercent/100)
-      // h = in_h * (heightPercent/100)
-      // x = in_w * (xPercent/100)
-      // y = in_h * (yPercent/100)
-      const cropFilter = `crop=in_w*${widthPercent/100}:in_h*${heightPercent/100}:in_w*${xPercent/100}:in_h*${yPercent/100}`;
+      // crop=w:h:x:y using percentage expressions
+      const cropFilter = `crop=in_w*${widthPercent / 100}:in_h*${heightPercent / 100}:in_w*${xPercent / 100}:in_h*${yPercent / 100}`;
 
-      await new Promise((resolve, reject) => {
-        ffmpeg(inputPath)
-          .videoFilters(cropFilter)
-          .save(outputPath)
-          .on("end", resolve)
-          .on("error", reject);
-      });
+      await execFileAsync(ffmpeg, [
+        "-y", "-i", inputPath,
+        "-vf", cropFilter,
+        "-frames:v", "1",
+        outputPath,
+      ]);
 
-      const finalUrl = await uploadToTransloadit(outputPath, "image/jpeg");
-      
-      // Cleanup
+      const outputUrl = await uploadProcessedFile(outputPath);
+      return { output: outputUrl };
+    } finally {
       await fs.rm(tmpDir, { recursive: true, force: true });
-
-      return { output: finalUrl };
-    } catch (error: any) {
-      console.error(error);
-      throw new Error(`Crop Image Failed: ${error.message}`);
     }
   },
 });
@@ -72,34 +82,48 @@ export const extractFrameTask = task({
   maxDuration: 300,
   run: async (payload: {
     videoUrl: string;
-    timestamp: number;
+    timestamp: number | string;
   }) => {
+    const { videoUrl } = payload;
+
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "nextflow-frame-"));
+    const outputPath = path.join(tmpDir, "frame.jpg");
+
     try {
-      const { videoUrl, timestamp } = payload;
-      
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'trigger-frame-'));
-      const outputPath = path.join(tmpDir, 'frame.jpg');
+      const ffmpeg = await findFfmpeg();
 
-      await new Promise((resolve, reject) => {
-        ffmpeg(videoUrl)
-          .screenshots({
-            timestamps: [timestamp],
-            filename: 'frame.jpg',
-            folder: tmpDir,
-          })
-          .on("end", resolve)
-          .on("error", reject);
-      });
+      // Resolve timestamp — supports seconds (number) or "50%" style strings
+      let seekArg: string;
+      if (typeof payload.timestamp === "string" && payload.timestamp.endsWith("%")) {
+        // We'll use a two-pass approach: first get duration, then seek
+        const pct = parseFloat(payload.timestamp) / 100;
+        const probeResult = await execFileAsync(ffmpeg, [
+          "-i", videoUrl, "-f", "null", "-"
+        ]).catch((e) => ({ stdout: "", stderr: e.stderr ?? "" }));
+        const durationMatch = probeResult.stderr?.match(/Duration: (\d+):(\d+):([\d.]+)/);
+        if (durationMatch) {
+          const totalSeconds =
+            parseInt(durationMatch[1]) * 3600 +
+            parseInt(durationMatch[2]) * 60 +
+            parseFloat(durationMatch[3]);
+          seekArg = String(totalSeconds * pct);
+        } else {
+          seekArg = "0";
+        }
+      } else {
+        seekArg = String(Number(payload.timestamp) || 0);
+      }
 
-      const finalUrl = await uploadToTransloadit(outputPath, "image/jpeg");
-      
-      // Cleanup
+      await execFileAsync(ffmpeg, [
+        "-y", "-ss", seekArg, "-i", videoUrl,
+        "-frames:v", "1", "-q:v", "2",
+        outputPath,
+      ]);
+
+      const outputUrl = await uploadProcessedFile(outputPath);
+      return { output: outputUrl };
+    } finally {
       await fs.rm(tmpDir, { recursive: true, force: true });
-
-      return { output: finalUrl };
-    } catch (error: any) {
-      console.error(error);
-      throw new Error(`Extract Frame Failed: ${error.message}`);
     }
   },
 });

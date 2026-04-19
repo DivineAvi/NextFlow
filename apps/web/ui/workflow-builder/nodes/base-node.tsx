@@ -108,7 +108,6 @@ export const BaseNode = memo(function BaseNode({
 }: BaseNodeProps) {
   const Icon = icon as ComponentType<SVGProps<SVGSVGElement>>;
   const [label, setLabel] = useState<string>(data.label);
-  console.log("selected node data : ", data );
   return (
     <div style={{ minWidth: minWidth, minHeight: minHeight , width: Width, height: Height }} className={`flex flex-col`}>
       {/* Header */}
