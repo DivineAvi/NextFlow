@@ -1,14 +1,13 @@
+// Handler renderer
+// Renders a handler(Input or Output) for a node
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { Handle, Position, type HandleType } from "reactflow";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@nextflow/ui";
 import { accentHandleHex, type AccentTone } from "@/ui/tones/tones";
+import { DataType } from "@nextflow/core";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export type HandlerDataType = "string" | "number" | "boolean" | "array" | "object";
+export type HandlerDataType = DataType;
 type TooltipSide = "left" | "right" | "top" | "bottom";
 
 export interface HandlerRendererProps {
@@ -20,20 +19,15 @@ export interface HandlerRendererProps {
   required?: boolean;
   tone?: AccentTone;
   position?: Position;
-  /** Edge length (px) of the invisible hit-slop square around the handle. */
+  // Edge length of the invisible hit box square around the handle.
   hitSlopPx?: number;
-  /** Scale multiplier while hovered (1 = no growth). */
+  // Scale multiplier while hovered (1 = no growth).
   hoverScale?: number;
 }
 
 // ---------------------------------------------------------------------------
-// Helpers — module-scope so they are not recreated on every render.
+// Helpers 
 // ---------------------------------------------------------------------------
-
-/**
- * Compose React Flow's centering translate with a scale so they don't
- * cancel each other out.
- */
 function handleTransform(position: Position, scale: number): string {
   const isHorizontal = position === Position.Left || position === Position.Right;
   return isHorizontal
@@ -52,7 +46,7 @@ const POSITION_TO_TOOLTIP_SIDE: Record<Position, TooltipSide> = {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function HandlerRenderer({
+export function HandlerRenderer({
   id,
   handleType,
   description,

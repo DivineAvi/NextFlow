@@ -91,14 +91,9 @@ export interface BaseNodeProps extends NodeProps, StyleProps {
 
 // ---------------------------------------------------------------------------
 // Component
+// BaseNode is the visual shell for every node in the workflow canvas.
 // ---------------------------------------------------------------------------
 
-/**
- * BaseNode is the visual shell for every node in the workflow canvas.
- *
- * `memo` prevents the node from re-rendering on canvas pan/zoom/selection
- * of other nodes — critical for performance with many nodes on screen.
- */
 export const BaseNode = memo(function BaseNode({
   data,
   children,

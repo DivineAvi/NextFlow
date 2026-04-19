@@ -1,3 +1,5 @@
+// Label renderer
+// Renders a label for an input
 import type { FieldTone } from "@/ui/tones/tones";
 import React from "react";
 
@@ -8,14 +10,13 @@ interface LabelRendererProps {
   className?: string;
 }
 
-/** Module-scope constant — avoids re-creating the record on every render. */
 const TONE_CLASSES: Record<FieldTone, string> = {
   dark: "text-[#737373]",
   light: "text-zinc-900",
   neutral: "text-zinc-700",
 };
 
-export default function LabelRenderer({
+export function LabelRenderer({
   htmlFor,
   children,
   tone = "neutral",

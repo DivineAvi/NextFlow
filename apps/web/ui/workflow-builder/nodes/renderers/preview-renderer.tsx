@@ -1,3 +1,6 @@
+// Preview renderer
+// Renders a preview of a media file
+
 import React, { useState } from "react";
 
 export type PreviewType = "image" | "video" | "audio" | "text" | "other";
@@ -10,7 +13,7 @@ export interface PreviewRendererProps {
   type: PreviewType;
 }
 
-export default function PreviewRenderer({ id, value, urls, type }: PreviewRendererProps) {
+export function PreviewRenderer({ id, value, urls, type }: PreviewRendererProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (!urls || urls.length === 0) {

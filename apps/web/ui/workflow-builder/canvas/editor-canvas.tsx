@@ -16,12 +16,14 @@ import ReactFlow, {
   OnConnectStartParams,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { useShallow } from "zustand/react/shallow";
 
 import { CanvasEmptyState } from "./canvas-empty-state";
 import { BaseNode, LLMNode, TextNode, UploadImageNode, UploadVideoNode, CropImageNode, ExtractFrameNode } from "@/ui/workflow-builder/nodes";
 import { CustomEdge } from "./edges/custom-edge";
 import { useCanvasStore } from "@/store/canvas-store";
 import { EDGE_COLORS, EdgeTone } from "@/ui/tones/tones";
+import { AvailableNodesList } from "@nextflow/core";
 
 // ---------------------------------------------------------------------------
 // Module-scope constants — identities NEVER change across re-renders.
@@ -51,13 +53,37 @@ const EDGE_TYPES: EdgeTypes = {
 const INITIAL_NODES: Parameters<typeof useNodesState>[0] = [];
 const INITIAL_EDGES: Parameters<typeof useEdgesState>[0] = [];
 
-// Map from ReactFlow node type → edge tone so connected edges pick the right color.
+// Map from Registry output type → edge tone so connected edges pick the right color.
 const HANDLER_TYPE_TO_TONE: Record<string, EdgeTone> = {
+  string: "yellow",
   text: "yellow",
   image: "blue",
   video: "pink",
   number: "orange",
   boolean: "orange",
+  any: "yellow"
+};
+
+const getDefinitionType = (feType: string) => {
+  if (feType === "text_node") return "text_input";
+  if (feType === "crop_image") return "image_crop";
+  return feType;
+};
+
+const generateDefaultNodeData = (feType: string) => {
+  const coreType = getDefinitionType(feType);
+  const def = AvailableNodesList.find((n) => n.type === coreType);
+  
+  const data: Record<string, any> = { label: feType.replace("_", " ") };
+  
+  if (def && def.controls) {
+    for (const ctrl of def.controls) {
+      if (ctrl.defaultValue !== undefined) {
+        data[ctrl.id] = ctrl.defaultValue;
+      }
+    }
+  }
+  return data;
 };
 
 // ---------------------------------------------------------------------------
@@ -65,8 +91,15 @@ const HANDLER_TYPE_TO_TONE: Record<string, EdgeTone> = {
 // ---------------------------------------------------------------------------
 
 export const EditorCanvasInner = memo(function EditorCanvasInner() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(INITIAL_EDGES);
+  const { nodes, edges, onNodesChange, onEdgesChange, setEdges } = useCanvasStore(
+    useShallow((s) => ({
+      nodes: s.nodes,
+      edges: s.edges,
+      onNodesChange: s.onNodesChange,
+      onEdgesChange: s.onEdgesChange,
+      setEdges: s.setEdges,
+    }))
+  );
   const { screenToFlowPosition, addNodes } = useReactFlow();
   const [connectLineStyle, setConnectLineStyle] = useState<React.CSSProperties>({ stroke: "zinc", strokeWidth: 2, strokeOpacity: 0.2 });
   // ── Watch Zustand store for sidebar "Add to Canvas" requests ───────────
@@ -85,7 +118,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
       id: `${pendingNodeType}-${Date.now()}`,
       type: pendingNodeType,
       position,
-      data: { label: pendingNodeType.replace("_", " ") },
+      data: generateDefaultNodeData(pendingNodeType),
     });
 
     clearPendingNode();
@@ -93,19 +126,6 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
 
   // ── Connection Validation Helpers ────────────────────────────────────────
  
-  const getSourceOutputType = (nodeType: string): string => {
-    if (["text_node", "llm_node"].includes(nodeType)) return "TEXT";
-    if (["upload_image", "crop_image", "extract_frame"].includes(nodeType)) return "IMAGE";
-    if (["upload_video"].includes(nodeType)) return "VIDEO";
-    return "UNKNOWN";
-  };
-
-  const getTargetInputType = (handleId: string): string => {
-    if (handleId.includes("image")) return "IMAGE";
-    if (handleId.includes("video")) return "VIDEO";
-    return "TEXT"; // Default to TEXT for text outputs, prompts, timestamps
-  };
-
   const hasCycle = (source: string, target: string, allEdges: any[]): boolean => {
     // If adding an edge from source -> target, a cycle occurs if there is a path from target -> source
     const visited = new Set<string>();
@@ -127,12 +147,22 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
     params: OnConnectStartParams
   ) => {
     console.log(params);
-    let stroke = EDGE_COLORS[HANDLER_TYPE_TO_TONE["text"]].stroke;
-    if (params.handleId?.includes("image")) stroke = EDGE_COLORS[HANDLER_TYPE_TO_TONE["image"]].stroke;
-    else if (params.handleId?.includes("video")) stroke = EDGE_COLORS[HANDLER_TYPE_TO_TONE["video"]].stroke;
-    else if (params.handleId?.includes("number")) stroke = EDGE_COLORS[HANDLER_TYPE_TO_TONE["number"]].stroke;
-    else if (params.handleId?.includes("boolean")) stroke = EDGE_COLORS[HANDLER_TYPE_TO_TONE["boolean"]].stroke;
-    else stroke = EDGE_COLORS[HANDLER_TYPE_TO_TONE["text"]].stroke;
+    
+    // Attempt to guess tone based on source node definition
+    let stroke = EDGE_COLORS["yellow"].stroke;
+    const sourceNode = nodes.find((n) => n.id === params.nodeId);
+    if (sourceNode) {
+      const sourceDef = AvailableNodesList.find((n) => n.type === getDefinitionType(sourceNode.type ?? ""));
+      if (sourceDef && params.handleId) {
+        const outputPort = sourceDef.outputs.find((o) => o.id === params.handleId);
+        if (outputPort) {
+          const matchedTone = HANDLER_TYPE_TO_TONE[outputPort.type];
+          if (matchedTone) {
+            stroke = EDGE_COLORS[matchedTone].stroke;
+          }
+        }
+      }
+    }
     
     setConnectLineStyle({ stroke, strokeWidth: 2 });
   }, [setConnectLineStyle]);
@@ -141,14 +171,28 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
   const onConnect = useCallback(
     (params: Connection) => {
       const sourceNode = nodes.find((n) => n.id === params.source);
-      if (!sourceNode) return;
+      const targetNode = nodes.find((n) => n.id === params.target);
+      if (!sourceNode || !targetNode) return;
 
-      const outType = getSourceOutputType(sourceNode.type ?? "");
-      const inType = getTargetInputType(params.targetHandle ?? "");
+      const sourceDef = AvailableNodesList.find((n) => n.type === getDefinitionType(sourceNode.type ?? ""));
+      const targetDef = AvailableNodesList.find((n) => n.type === getDefinitionType(targetNode.type ?? ""));
 
-      // Validate Types
-      if (outType !== inType) {
-        console.warn(`Validation Error: Cannot connect ${outType} to ${inType} input.`);
+      if (!sourceDef || !targetDef) {
+        console.warn("Validation Error: Could not find node definitions in registry.");
+        return;
+      }
+
+      const outputPort = sourceDef.outputs.find((o) => o.id === params.sourceHandle);
+      const inputPort = targetDef.inputs.find((i) => i.id === params.targetHandle);
+
+      if (!outputPort || !inputPort) {
+        console.warn("Validation Error: Could not find matching ports for the connection.");
+        return;
+      }
+
+      // Validate Types via Core Schema
+      if (outputPort.type !== inputPort.type && inputPort.type !== "any") {
+        console.warn(`Validation Error: Cannot connect ${outputPort.type} to ${inputPort.type} input.`);
         return;
       }
 
@@ -157,20 +201,17 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
         console.warn("Validation Error: Circular connections are not permitted.");
         return;
       }
-      let tone: EdgeTone = "pink";
-      if (params.sourceHandle?.includes("image")) {
-        tone = HANDLER_TYPE_TO_TONE["image"];
-      } else if (params.sourceHandle?.includes("video")) {
-        tone = HANDLER_TYPE_TO_TONE["video"];
-      } else if (params.sourceHandle?.includes("number")) {
-        tone = HANDLER_TYPE_TO_TONE["number"];
-      } else if (params.sourceHandle?.includes("boolean")) {
-        tone = HANDLER_TYPE_TO_TONE["boolean"];
-      } else {
-        tone = HANDLER_TYPE_TO_TONE["text"];
+      
+      const tone = HANDLER_TYPE_TO_TONE[outputPort.type] || "yellow";
+
+      // Handle replacing existing edge if multiple connections are not accepted
+      let currentEdges = edges;
+      if (!inputPort.acceptsMultiple) {
+        // Remove any existing edge that targets this exact same port on the target node
+        currentEdges = edges.filter((e) => !(e.target === params.target && e.targetHandle === params.targetHandle));
       }
 
-      setEdges((eds) =>
+      setEdges(
         addEdge(
           {
             ...params,
@@ -178,7 +219,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
             data: { tone, label: sourceNode?.type?.replace("_node", "") ?? "" },
             animated: false,
           },
-          eds
+          currentEdges
         )
       );
     },
@@ -206,7 +247,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
         id: `${type}-${Date.now()}`,
         type,
         position,
-        data: { label: type.replace("_node", " node") },
+        data: generateDefaultNodeData(type),
       });
     },
     [addNodes, screenToFlowPosition]

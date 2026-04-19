@@ -1,0 +1,10 @@
+if (node.id === nodeId) {
+        // Always create a new object for the node and its data
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...newData,
+          },
+        };
+      }

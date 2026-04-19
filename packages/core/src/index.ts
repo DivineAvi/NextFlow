@@ -1,2 +1,2 @@
-export * from "./registry";
-export * from "./db";
+export * from "./nodes";
+export * from "./schema";

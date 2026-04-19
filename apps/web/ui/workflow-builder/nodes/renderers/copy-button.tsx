@@ -1,3 +1,6 @@
+// Copy button
+// Renders a copy to clipboard button
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleCheck, Copy } from "lucide-react";
 
@@ -5,8 +8,8 @@ interface CopyButtonProps {
   value: string;
 }
 
-/** Copy-to-clipboard button with a 1.2s visual acknowledgment. */
-export default function CopyButton({ value }: CopyButtonProps) {
+// Copy-to-clipboard button
+export function CopyButton({ value }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -26,7 +29,7 @@ export default function CopyButton({ value }: CopyButtonProps) {
         setCopied(false);
       }, 1200);
     } catch {
-      // Clipboard write failed — silent; consider adding a toast here.
+      // Clipboard write failed
     }
   }, [value]);
 

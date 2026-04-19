@@ -1,16 +1,27 @@
-import { useState, useCallback } from "react";
-import { uploadZoneTone, type FieldTone } from "@/ui/tones/tones";
+// Upload file renderer
+// Renders a file upload input with a custom file upload input
+
+import { useState, useCallback, useEffect } from "react";
+import { uploadZoneTone } from "@/ui/tones/tones";
 import { File, Image, Video, X } from "lucide-react";
+import { useCanvasStore } from "@/store/canvas-store";
+import { Tone } from "./tone";
 
-export type Tone = FieldTone;
-type FileType = "image" | "video" | "file";
+// IMPORT THE CORE TYPE
+import type { FileUploadControlDef } from "@nextflow/core"; 
 
-const FILE_TYPE_CONFIG: Record<FileType, { accept: string; icon: typeof File }> = {
-  image: { accept: "image/png,image/jpeg,image/jpg,image/webp,image/gif", icon: File},
+// ALIGN WITH CORE SCHEMA ('document' and 'any' instead of just 'file')
+type FileType = FileUploadControlDef["fileType"];
+
+// Allowed list of file types
+const FILE_TYPE_CONFIG: Record<FileType, { accept: string; icon: typeof File | typeof Image | typeof Video }> = {
+  image: { accept: "image/png,image/jpeg,image/jpg,image/webp,image/gif", icon: Image },
   video: { accept: "video/mp4,video/webm,video/mov,video/avi", icon: Video },
-  file:  { accept: "*/*", icon: File },
+  document: { accept: ".pdf,.doc,.docx,.txt,application/pdf", icon: File },
+  any: { accept: "*/*", icon: File },
 };
 
+// Helper to compress an image to a smaller size
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve) => {
     const img = new window.Image();
@@ -29,6 +40,16 @@ function compressImage(file: File): Promise<string> {
   });
 }
 
+// Helper to get the full Base64 string for the backend engine
+function getFullBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+}
+
 interface FileEntry {
   name: string;
   preview?: string;
@@ -36,20 +57,32 @@ interface FileEntry {
 
 interface UploadFileRendererProps {
   id: string;
+  nodeId: string;
   tone: Tone;
   placeholder?: string;
   fileType?: FileType;
+  initialValue?: string; 
 }
 
-export default function UploadFileRenderer({
+export function UploadFileRenderer({
   id,
+  nodeId,
   tone,
   placeholder = "Add file",
-  fileType = "file",
+  fileType = "any",
+  initialValue,
 }: UploadFileRendererProps) {
+  const updateNodeData = useCanvasStore((s) => s.updateNodeData);
   const [file, setFile] = useState<FileEntry | null>(null);
   const config = FILE_TYPE_CONFIG[fileType];
   const Icon = config.icon;
+
+  // Hydrate local state if the node loads with existing data from a saved workflow
+  useEffect(() => {
+    if (initialValue && !file) {
+      setFile({ name: "Uploaded File", preview: fileType === "image" ? initialValue : undefined });
+    }
+  }, [initialValue, fileType]);
 
   const handleClick = useCallback(async () => {
     const input = document.createElement("input");
@@ -60,21 +93,33 @@ export default function UploadFileRenderer({
       const selected = (e.target as HTMLInputElement).files?.[0];
       if (!selected) return;
 
+      // Prepare the payload for the backend
+      const fullBase64 = await getFullBase64(selected);
+      
       if (fileType === "image") {
+        // UI gets the tiny thumbnail, backend gets the full resolution
         const preview = await compressImage(selected);
         setFile({ name: selected.name, preview });
       } else {
         setFile({ name: selected.name });
       }
+
+      // 4. FIRE THE BRIDGE: Send the data to the Node's props.data
+      updateNodeData(nodeId, { [id]: fullBase64 });
     };
 
     input.click();
-  }, [config.accept, fileType]);
+  }, [config.accept, fileType, nodeId, id]);
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the click from re-opening the file picker
+    setFile(null);
+    updateNodeData(nodeId, { [id]: null }); // Clear the data in React Flow
+  };
 
   return (
     <div className="w-full min-w-0">
       {!file ? (
-        // Empty state — matches screenshot: text left, icon right, dashed border
         <button
           type="button"
           onClick={handleClick}
@@ -84,16 +129,14 @@ export default function UploadFileRenderer({
           <Icon size={11} className="opacity-80" />
         </button>
       ) : (
-        // Filled state — matches screenshot: thumbnail + filename + X
-<div className={`nodrag nopan flex justify-between h-6 w-full items-center gap-1.5 rounded-sm px-2 text-[10px] ${uploadZoneTone[tone]}`}>
-
+        <div className={`nodrag nopan flex justify-between h-6 w-full items-center gap-1.5 rounded-sm px-2 text-[10px] ${uploadZoneTone[tone]}`}>
           {/* Thumbnail or icon */}
           {file.preview ? (
-           <img
-           src={file.preview}
-           alt={file.name}
-           className="h-4 w-4 shrink-0 rounded-[2px] object-cover"
-         />
+            <img
+              src={file.preview}
+              alt={file.name}
+              className="h-4 w-4 shrink-0 rounded-[2px] object-cover"
+            />
           ) : (
             <Icon size={12} className="shrink-0 opacity-50" />
           )}
@@ -101,10 +144,10 @@ export default function UploadFileRenderer({
           {/* Filename */}
           <span className="flex-1 truncate opacity-70 max-w-[80px]">{file.name}</span>
 
-          {/* Clear */}
+          {/* Clear Button */}
           <button
             type="button"
-            onClick={() => setFile(null)}
+            onClick={handleClear}
             className="nodrag nopan cursor-pointer hover:bg-zinc-700 text-white font-bold rounded-sm flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity"
           >
             <X size={13} strokeWidth={2.5} color="currentColor" />

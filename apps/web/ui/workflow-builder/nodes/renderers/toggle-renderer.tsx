@@ -1,10 +1,14 @@
-import { useState } from "react";
-import { toggleTrackTone, type FieldTone } from "@/ui/tones/tones";
+// Toggle renderer
+// Renders a toggle input with a custom toggle input
 
-export type Tone = FieldTone;
+import { useState } from "react";
+import { toggleTrackTone} from "@/ui/tones/tones";
+import { useCanvasStore } from "@/store/canvas-store";
+import { Tone } from "./tone";
 
 interface ToggleRendererProps {
   id: string;
+  nodeId: string;
   tone: Tone;
   initialValue?: string;
 }
@@ -18,7 +22,8 @@ const TRACK_CLASS =
 const THUMB_CLASS =
   "pointer-events-none block h-4 w-4 rounded-full bg-zinc-300 shadow transition-all duration-300";
 
-export default function ToggleRenderer({ id, tone, initialValue }: ToggleRendererProps) {
+export function ToggleRenderer({ id, nodeId, tone, initialValue }: ToggleRendererProps) {
+  const updateNodeData = useCanvasStore((s) => s.updateNodeData);
   const [on, setOn] = useState(() => parseOn(initialValue));
 
   return (
@@ -28,7 +33,11 @@ export default function ToggleRenderer({ id, tone, initialValue }: ToggleRendere
       role="switch"
       aria-checked={on}
       className={`${TRACK_CLASS} ${on ? "border-transparent bg-zinc-600" : toggleTrackTone[tone]}`}
-      onClick={() => setOn((v) => !v)}
+      onClick={() => {
+        const newValue = !on;
+        setOn(newValue);
+        updateNodeData(nodeId, { [id]: newValue.toString() });
+      }}
     >
       <span className={[THUMB_CLASS, on && "ml-auto bg-white"].filter(Boolean).join(" ")} />
     </button>
