@@ -1,5 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
-import { GitBranch } from "lucide-react";
+import Image from "next/image";
 
 export default function SignInPage() {
   return (
@@ -7,10 +7,7 @@ export default function SignInPage() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-[#0d0d0d] border-r border-zinc-800/60">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-            <GitBranch size={16} className="text-white" strokeWidth={2.5} />
-          </div>
-          <span className="text-base font-semibold text-zinc-100 tracking-tight">NextFlow</span>
+          <Image src="/logo.png" alt="NextFlow" width={32} height={32} className="rounded-lg" />
         </div>
 
         <div className="flex flex-col gap-4 max-w-sm">
