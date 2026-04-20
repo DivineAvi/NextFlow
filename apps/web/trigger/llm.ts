@@ -6,10 +6,6 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
 
-// Above this size, use the Gemini File API instead of inlineData to avoid
-// hitting the 20 MB request body limit.
-const FILE_API_THRESHOLD = 4 * 1024 * 1024; // 4 MB
-
 function getClients() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
@@ -34,10 +30,10 @@ function mimeFromBytes(buf: ArrayBuffer): string {
 }
 
 /**
- * Convert a single image source to a Gemini Part.
- * - Small images  (<4 MB): sent as inlineData (no round-trip to File API).
- * - Large images  (≥4 MB): uploaded to Gemini File API and passed as fileData.
- * Throws on any failure so callers get an explicit error instead of silent data loss.
+ * Upload an image to the Gemini File API and return a fileData Part.
+ * All images go through the File API — no inline base64 in the request body.
+ * Gemini fetches the file directly from its own storage, making multi-image
+ * requests significantly faster regardless of image size.
  */
 async function imagePartFromSource(
   source: string,
@@ -50,8 +46,7 @@ async function imagePartFromSource(
 
   if (source.startsWith("data:")) {
     const commaIdx = source.indexOf(",");
-    const base64Data = source.slice(commaIdx + 1);
-    arrayBuffer = Buffer.from(base64Data, "base64").buffer;
+    arrayBuffer = Buffer.from(source.slice(commaIdx + 1), "base64").buffer;
   } else if (source.startsWith("http")) {
     const response = await fetch(source);
     if (!response.ok) {
@@ -63,15 +58,8 @@ async function imagePartFromSource(
   }
 
   const mimeType = mimeFromBytes(arrayBuffer);
-
-  // Small image — send inline
-  if (arrayBuffer.byteLength < FILE_API_THRESHOLD) {
-    const base64Data = Buffer.from(arrayBuffer).toString("base64");
-    return { inlineData: { data: base64Data, mimeType } };
-  }
-
-  // Large image — upload to Gemini File API, pass by reference
   const tmpPath = join(tmpdir(), `${randomUUID()}.img`);
+
   try {
     await writeFile(tmpPath, Buffer.from(arrayBuffer));
     const upload = await fileManager.uploadFile(tmpPath, {
@@ -94,19 +82,19 @@ export const llmNodeTask = task({
     model?: string;
   }) => {
     const { genAI, fileManager } = getClients();
-    const modelId = payload.model || "gemini-2.5-flash";
+    const modelId = payload.model || "gemini-2.0-flash";
     const model = genAI.getGenerativeModel({ model: modelId });
 
     const sources = (payload.imageUrls ?? []).filter(
       (s): s is string => typeof s === "string" && s.length > 0
     );
 
-    // Fetch all images concurrently — fail fast if any image is unreachable
+    // Upload all images to File API concurrently — fail fast on any error
     const imageParts = await Promise.all(
       sources.map((src, i) => imagePartFromSource(src, fileManager, i))
     );
 
-    // Images must come before the text part in Gemini's content block
+    // Images must come before the text part
     const userParts: Part[] = [...imageParts, { text: payload.userMessage }];
 
     const request: Record<string, unknown> = {
