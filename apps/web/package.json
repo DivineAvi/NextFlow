@@ -16,7 +16,7 @@
     "@nextflow/core": "workspace:*",
     "@nextflow/ui": "workspace:*",
     "@nextflow/utils": "workspace:*",
-    "@trigger.dev/sdk": "latest",
+    "@trigger.dev/sdk": "4.4.4",
     "@uppy/core": "^5.2.0",
     "@uppy/transloadit": "^5.5.1",
     "fluent-ffmpeg": "latest",
@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@trigger.dev/build": "4.4.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
