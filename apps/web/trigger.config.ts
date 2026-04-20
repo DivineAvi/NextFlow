@@ -1,5 +1,6 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
 import { prismaExtension } from "@trigger.dev/build/extensions/prisma";
+import { aptGet } from "@trigger.dev/build/extensions/core";
 
 export default defineConfig({
   project: "proj_nextflow_demo",
@@ -22,6 +23,7 @@ export default defineConfig({
       prismaExtension({
         schema: "../../packages/core/prisma/schema.prisma",
       }),
+      aptGet({ packages: ["ffmpeg"] }),
     ],
   },
 });
