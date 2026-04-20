@@ -7,7 +7,7 @@ export default function SignUpPage() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-[#0d0d0d] border-r border-zinc-800/60">
         <div className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="NextFlow" width={32} height={32} className="rounded-lg" />
+          <Image src="/logo.png" alt="NextFlow" width={32} height={32} className="rounded-lg brightness-0 invert" />
         </div>
 
         <div className="flex flex-col gap-4 max-w-sm">

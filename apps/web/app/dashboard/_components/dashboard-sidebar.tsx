@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { LayoutDashboard, Workflow } from "lucide-react";
@@ -19,10 +18,6 @@ export function DashboardSidebar() {
 
   return (
     <aside className="flex h-screen w-[240px] shrink-0 flex-col border-r border-zinc-800/60 bg-[#0a0a0a]">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 py-5">
-        <Image src="/logo.png" alt="NextFlow" width={28} height={28} className="rounded-lg" />
-      </div>
 
       {/* Nav */}
       <nav className="flex flex-col gap-0.5 px-2 flex-1">
