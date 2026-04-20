@@ -33,12 +33,12 @@ export function UserAuthButton({ isCollapsed = false }: UserAuthButtonProps) {
 
       <Show when="signed-in">
         {isCollapsed ? (
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--wf-btn-bg)] text-xs font-medium text-[var(--wf-text-secondary)] border border-[var(--wf-border)]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--wf-btn-bg)] text-[10px] font-medium text-[var(--wf-text-secondary)] border border-[var(--wf-border)]">
             {email[0]?.toUpperCase() ?? "U"}
           </div>
         ) : (
           <Button className=" cursor-pointer flex w-full h-12 justify-between items-center gap-2.5 rounded-md bg-[var(--wf-bg-surface)] hover:bg-[var(--wf-btn-bg)] transition-colors border-none">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--wf-btn-bg)] border border-[var(--wf-border)] text-[10px]  text-[var(--wf-text-primary)]">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--wf-btn-bg)] border border-[var(--wf-border)] text-[10px]  text-[var(--wf-text-secondary)]">
               {email[0]?.toUpperCase() ?? "U"}
             </div>
             <div className="flex min-w-0 flex-col">

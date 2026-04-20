@@ -187,11 +187,15 @@ export function NodeLibrarySearchDialog({
                           isKeyboardActive ? "bg-white/15" : "bg-[var(--wf-btn-bg)]"
                         )}
                       >
-                        <Icon
-                          className={cn("size-[22px]", isKeyboardActive ? "text-white" : "text-[var(--wf-text-secondary)]")}
-                          strokeWidth={1.75}
-                          aria-hidden
-                        />
+                        {Icon ? (
+                          <Icon
+                            className={cn("size-[22px]", isKeyboardActive ? "text-white" : "text-[var(--wf-text-secondary)]")}
+                            strokeWidth={1.75}
+                            aria-hidden
+                          />
+                        ) : node.icon_url ? (
+                          <img src={node.icon_url} alt="" className="size-[22px] object-contain" aria-hidden />
+                        ) : null}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-center gap-2">

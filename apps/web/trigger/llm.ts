@@ -39,7 +39,7 @@ export const llmNodeTask = task({
     imageUrls?: string[];
     model?: string;
   }) => {
-    const modelId = payload.model || "gemini-1.5-flash";
+    const modelId = payload.model || "gemini-2.5-flash";
     const model = genAI.getGenerativeModel({ model: modelId });
 
     const userParts: Part[] = [];

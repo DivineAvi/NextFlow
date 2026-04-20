@@ -103,7 +103,7 @@ function RunRow({ run, index, total, expanded, onToggle }: {
       <button
         onClick={onToggle}
         className={cn(
-          "flex h-9 w-full items-center gap-3 rounded-lg px-4 text-sm transition-all hover:cursor-pointer hover:bg-[var(--wf-btn-bg)]",
+          "flex h-9 w-full items-center gap-3 rounded-lg px-4 bg-[var(--wf-btn-bg)/20] text-sm transition-all hover:cursor-pointer hover:bg-[var(--wf-btn-bg-hover)]",
           expanded && "bg-[var(--wf-btn-bg)]"
         )}
       >
@@ -148,7 +148,7 @@ function RunRow({ run, index, total, expanded, onToggle }: {
             </div>
           )}
 
-          <div className="mx-4 mt-1 mb-2 border-t border-[var(--wf-border)]" />
+
         </div>
       </div>
     </div>
@@ -192,16 +192,16 @@ export function HistorySidebar() {
 
   return (
     <aside className={cn(
-      "flex h-screen shrink-0 flex-col border-l border-[var(--wf-border)] bg-[var(--wf-bg-sidebar)] transition-all duration-300",
+      "flex h-screen shrink-0 flex-col border-none border-[var(--wf-border)] bg-[var(--wf-bg-sidebar)] transition-all duration-300",
       historySidebarOpen ? "w-64" : "w-0 border-l-0"
     )}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--wf-border)] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-none border-[var(--wf-border)] shrink-0">
         <h2 className="text-sm font-semibold text-[var(--wf-text-primary)]">History</h2>
         <button
           onClick={() => { setIsLoading(true); fetchRuns().finally(() => setIsLoading(false)); }}
           title="Refresh"
-          className="text-[var(--wf-text-muted)] hover:text-[var(--wf-text-secondary)] transition"
+          className="text-[var(--wf-text-muted)] hover:text-[var(--wf-text-secondary)] transition hover:cursor-pointer hover:bg-[var(--wf-btn-bg-hover)] rounded-lg p-2"
         >
           <RefreshCw size={13} className={cn(isLoading && "animate-spin")} />
         </button>

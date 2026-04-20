@@ -34,7 +34,7 @@ export function TextNode(props: NodeProps) {
       </div>
 
       {/* Textarea */}
-      <div className="px-3 pb-2">
+      <div className="flex px-3">
         {textControl && (
           <TextareaRenderer
             nodeId={props.id}

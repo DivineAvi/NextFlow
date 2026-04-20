@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
     const workflow = await db.workflow.create({
       data: {
-        name: name || "Untitled Workflow",
+        name: name || "Untitled",
         definition: definition || { nodes: [], edges: [] },
         userId: user.id,
       },

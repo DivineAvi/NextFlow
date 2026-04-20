@@ -81,7 +81,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   nodes: [],
   edges: [],
   workflowId: null,
-  workflowName: "Untitled Workflow",
+  workflowName: "Untitled",
   pendingNodeType: null,
   hoveredEdgeId: null,
   execution: {
@@ -92,7 +92,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
   history: [],
   historyIndex: -1,
-  historySidebarOpen: true,
+  historySidebarOpen: false,
   toggleHistorySidebar: () => set((s) => ({ historySidebarOpen: !s.historySidebarOpen })),
   mobileSidebarOpen: false,
   toggleMobileSidebar: () => set((s) => ({ mobileSidebarOpen: !s.mobileSidebarOpen })),
@@ -175,8 +175,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   runWorkflow: async () => {
-    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId } = get();
     if (execution.isRunning) return;
+    set((s) => ({ execution: { ...s.execution, isRunning: true } }));
     try {
       const res = await fetch("/api/execute-workflow", {
         method: "POST",
@@ -187,12 +188,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
       if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
-    } catch (e: any) { console.error("runWorkflow error:", e.message); }
+    } catch (e: any) { console.error("runWorkflow error:", e.message); setExecutionIdle(); }
   },
 
   runNode: async (nodeId: string) => {
-    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId } = get();
     if (execution.isRunning) return;
+    set((s) => ({ execution: { ...s.execution, isRunning: true } }));
 
     // Collect nodeId + all its ancestors via backwards BFS
     const included = new Set<string>();
@@ -218,14 +220,15 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
       if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
-    } catch (e: any) { console.error("runNode error:", e.message); }
+    } catch (e: any) { console.error("runNode error:", e.message); setExecutionIdle(); }
   },
 
   runSelected: async () => {
-    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId } = get();
     if (execution.isRunning) return;
+    set((s) => ({ execution: { ...s.execution, isRunning: true } }));
     const selectedNodes = nodes.filter((n) => n.selected);
-    if (selectedNodes.length === 0) return;
+    if (selectedNodes.length === 0) { setExecutionIdle(); return; }
     const selectedIds = new Set(selectedNodes.map((n) => n.id));
     const selectedEdges = edges.filter((e) => selectedIds.has(e.source) && selectedIds.has(e.target));
 
@@ -239,12 +242,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
       if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
-    } catch (e: any) { console.error("runSelected error:", e.message); }
+    } catch (e: any) { console.error("runSelected error:", e.message); setExecutionIdle(); }
   },
 
   runConnectedComponent: async (nodeIds: string[]) => {
-    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId } = get();
     if (execution.isRunning) return;
+    set((s) => ({ execution: { ...s.execution, isRunning: true } }));
 
     // BFS both directions from every seed node — unions all connected components
     const included = new Set<string>();
@@ -271,7 +275,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
       if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
-    } catch (e: any) { console.error("runConnectedComponent error:", e.message); }
+    } catch (e: any) { console.error("runConnectedComponent error:", e.message); setExecutionIdle(); }
   },
 
   pushHistory: () => {

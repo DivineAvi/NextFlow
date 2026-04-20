@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { NewWorkflowButton } from "./new-workflow-button";
 import { WorkflowSearch } from "./workflow-search";
 import { WORKFLOW_TEMPLATES } from "@/config/templates";
@@ -109,6 +109,20 @@ export function WorkflowGrid() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Delete this workflow?")) return;
+    setDeletingId(id);
+    try {
+      await fetch(`/api/workflows/${id}`, { method: "DELETE" });
+      setWorkflows((prev) => prev.filter((w) => w.id !== id));
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     fetch("/api/workflows")
@@ -166,12 +180,23 @@ export function WorkflowGrid() {
 
               {filteredWorkflows.map((workflow, i) => (
                 <div key={workflow.id} className="flex flex-col gap-2">
-                  <Link
-                    href={`/workflow/${workflow.id}`}
-                    className={`group flex aspect-video w-full rounded-xl bg-gradient-to-br ${CARD_GRADIENTS[i % CARD_GRADIENTS.length]} border border-zinc-800 hover:border-zinc-600 transition-all duration-200 overflow-hidden`}
-                  >
-                    <DotPattern id={workflow.id} />
-                  </Link>
+                  <div className="relative group">
+                    <Link
+                      href={`/workflow/${workflow.id}`}
+                      className={`flex aspect-video w-full rounded-xl bg-gradient-to-br ${CARD_GRADIENTS[i % CARD_GRADIENTS.length]} border border-zinc-800 hover:border-zinc-600 transition-all duration-200 overflow-hidden`}
+                    >
+                      <DotPattern id={workflow.id} />
+                    </Link>
+                    <button
+                      onClick={(e) => handleDelete(e, workflow.id)}
+                      className="absolute top-2 right-2 flex items-center justify-center size-7 rounded-lg bg-black/60 text-zinc-400 hover:text-red-400 hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-all"
+                      title="Delete workflow"
+                    >
+                      {deletingId === workflow.id
+                        ? <Loader2 size={13} className="animate-spin" />
+                        : <Trash2 size={13} />}
+                    </button>
+                  </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm text-zinc-300 font-medium truncate">{workflow.name}</span>
                     <span className="text-xs text-zinc-600">Edited {timeAgo(workflow.updatedAt)}</span>

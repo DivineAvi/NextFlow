@@ -29,8 +29,8 @@ export function AppSidebar() {
           <SidebarToggle toggleCollapse={toggleCollapse} />
         </div>
         <ScrollArea className="relative flex flex-1 w-full min-w-0 flex-col gap-[1px] p-2">
-        <SidebarItem icon_url="https://optim-images.krea.ai/https---s-krea-ai-icons-HomeIcon-png-128.webp " label="Home" isCollapsed={isCollapsed} />
-        <SidebarItem icon_url="https://optim-images.krea.ai/https---s-krea-ai-icons-NodeEditor-png-128.webp" label="Node Editor" isCollapsed={isCollapsed} />
+        <SidebarItem icon_url="https://optim-images.krea.ai/https---s-krea-ai-icons-HomeIcon-png-128.webp " label="Home" isCollapsed={isCollapsed} href="/dashboard" />
+        <SidebarItem icon_url="https://optim-images.krea.ai/https---s-krea-ai-icons-NodeEditor-png-128.webp" label="Node Editor" isCollapsed={isCollapsed} href="/workflow/new" />
         </ScrollArea>
         <ScrollArea className="relative flex flex-1 w-full min-w-0 flex-col gap-[1px] p-2">
 

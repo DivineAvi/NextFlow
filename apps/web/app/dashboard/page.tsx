@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { GitBranch } from "lucide-react";
-import { DashboardSidebar } from "./_components/dashboard-sidebar";
 import { WorkflowGrid } from "./_components/workflow-grid";
 import { HeroNewWorkflowButton } from "./_components/hero-new-workflow-button";
 
@@ -11,8 +10,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#0a0a0a]">
-      <DashboardSidebar />
-
       <main className="flex flex-1 min-w-0 flex-col overflow-y-auto">
         {/* ── Hero ── */}
         <section className="relative flex h-[340px] shrink-0 items-start overflow-hidden bg-[#0d0d0d]">

@@ -55,7 +55,7 @@ export function createSampleWorkflow(): { nodes: Node[]; edges: Edge[] } {
       id: "node-llm-1",
       type: "llm_node",
       position: { x: 580, y: 220 },
-      data: { label: "Product Description LLM", model: "gemini-1.5-flash", status: "PENDING" },
+      data: { label: "Product Description LLM", model: "gemini-2.5-flash", status: "PENDING" },
     },
 
     // ── Branch B ──────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ export function createSampleWorkflow(): { nodes: Node[]; edges: Edge[] } {
       id: "node-llm-2",
       type: "llm_node",
       position: { x: 900, y: 460 },
-      data: { label: "Final Marketing LLM", model: "gemini-1.5-flash", status: "PENDING" },
+      data: { label: "Final Marketing LLM", model: "gemini-2.5-flash", status: "PENDING" },
     },
   ];
 

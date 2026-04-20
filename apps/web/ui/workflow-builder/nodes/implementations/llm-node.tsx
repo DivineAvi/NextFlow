@@ -88,8 +88,8 @@ export function LLMNode(props: NodeProps) {
       </div>
 
       {/* ── Model selector + Image handle ─────────────────────────────── */}
-      <div className="flex px-3 pb-2 items-center gap-3">
-        <div className="relative flex items-center gap-2">
+      <div className="relative flex px-3 items-center gap-3">
+        <div className=" flex items-center gap-2">
           <HandlerRenderer
             label={imageIn.label}
             id={imageIn.id}

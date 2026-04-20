@@ -76,6 +76,57 @@ In your [Clerk dashboard](https://dashboard.clerk.com):
 
 Use [ngrok](https://ngrok.com) or [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) to expose localhost.
 
+## 8. Deploy to Vercel
+
+### Import project
+
+1. Push repo to GitHub
+2. Go to [vercel.com](https://vercel.com) → **New Project** → import the repo
+3. In **Configure Project**, set:
+   - **Root Directory**: `apps/web`
+   - **Framework Preset**: Next.js
+   - **Node.js Version**: 20.x
+
+### Build & install overrides
+
+In **Vercel → Settings → General → Build & Development Settings**:
+
+| Setting | Value |
+|---|---|
+| Install Command | `cd ../.. && pnpm install` |
+| Build Command | `pnpm build` |
+| Output Directory | `.next` (default) |
+
+### Environment variables
+
+In **Vercel → Settings → Environment Variables**, add every key from `.env.example`:
+
+```
+DATABASE_URL
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY
+CLERK_WEBHOOK_SIGNING_SECRET
+GEMINI_API_KEY
+TRIGGER_SECRET_KEY
+TRANSLOADIT_KEY
+TRANSLOADIT_SECRET
+```
+
+Set all to **Production**, **Preview**, and **Development** environments.
+
+### Post-deploy checklist
+
+- [ ] Update Clerk webhook URL → `https://<your-app>.vercel.app/api/webhooks/clerk`
+- [ ] Deploy Trigger.dev tasks to production:
+  ```bash
+  cd apps/web
+  TRIGGER_SECRET_KEY=<prod-key> npx trigger.dev@latest deploy
+  ```
+- [ ] Run `pnpm db:push` from `packages/core` against the production `DATABASE_URL` to ensure schema is up to date
+- [ ] Visit `https://<your-app>.vercel.app` — should redirect to sign-in
+
+---
+
 ## Architecture Overview
 
 ```

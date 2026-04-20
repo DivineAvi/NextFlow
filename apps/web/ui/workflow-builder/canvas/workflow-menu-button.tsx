@@ -17,8 +17,9 @@ export function WorkflowMenuButton() {
   const menuRef = useRef<HTMLDivElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
-  const { workflowName, setWorkflowName, nodes, edges, setNodes, setEdges } = useCanvasStore(
+  const { workflowId, workflowName, setWorkflowName, nodes, edges, setNodes, setEdges } = useCanvasStore(
     useShallow((s) => ({
+      workflowId: s.workflowId,
       workflowName: s.workflowName,
       setWorkflowName: s.setWorkflowName,
       nodes: s.nodes,
@@ -27,6 +28,15 @@ export function WorkflowMenuButton() {
       setEdges: s.setEdges,
     }))
   );
+
+  const saveNameToDb = useCallback((name: string) => {
+    if (!workflowId) return;
+    fetch(`/api/workflows/${workflowId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim() || "Untitled" }),
+    }).catch(() => {});
+  }, [workflowId]);
 
   // Close menu on outside click
   useEffect(() => {
@@ -76,10 +86,10 @@ export function WorkflowMenuButton() {
       {/* Logo + chevron button */}
       <button
         onClick={() => setMenuOpen((o) => !o)}
-        className={`flex items-center gap-1.5 h-9 px-2.5 rounded-xl border-none transition-all hover:bg-[var(--wf-btn-bg-hover)] ${
+        className={`flex items-center gap-1.5 h-9 px-2.5 rounded-xl border-none transition-all hover:bg-[var(--wf-btn-bg-hover)] border-[var(--wf-border)]  ${
           menuOpen
-            ? "border-blue-500 bg-[var(--wf-bg-surface)]"
-            : "border-[var(--wf-border)] "
+            ? ""
+            : ""
         }`}
       >
         <img src="/logo.png" alt="NextFlow" className="size-5 shrink-0" style={{ filter: "invert(var(--wf-logo-invert))" }} />
@@ -90,25 +100,35 @@ export function WorkflowMenuButton() {
         )}
       </button>
 
-      {/* Editable workflow name */}
-      <input
-        value={workflowName}
-        onChange={(e) => setWorkflowName(e.target.value)}
-        className="nodrag nopan  bg-transparent outline-none text-sm font-semibold text-[var(--wf-text-primary)] placeholder:text-[var(--wf-text-muted)] min-w-0 max-w-[180px] truncate"
-        placeholder="Untitled"
-        spellCheck={false}
-      />
+      {/* Editable workflow name — width mirrors content via hidden span */}
+      <span className="relative inline-grid text-sm font-semibold max-w-[150px]">
+        <span className="invisible whitespace-pre px-0 col-start-1 row-start-1 truncate">
+          {workflowName || "Untitled"}
+        </span>
+        <input
+          value={workflowName}
+          onChange={(e) => setWorkflowName(e.target.value)}
+          onBlur={(e) => {
+            const name = e.target.value.trim() || "Untitled";
+            setWorkflowName(name);
+            saveNameToDb(name);
+          }}
+          className="nodrag nopan col-start-1 row-start-1 w-full bg-transparent outline-none font-semibold text-[var(--wf-text-primary)] placeholder:text-[var(--wf-text-muted)] truncate"
+          placeholder="Untitled"
+          spellCheck={false}
+        />
+      </span>
 
       {/* Dropdown */}
       {menuOpen && (
-        <div className="absolute top-[calc(100%+8px)] left-0 z-[200] w-56 rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-bg-surface)] shadow-2xl py-1.5 overflow-hidden">
+        <div className="absolute top-[calc(100%+8px)] left-0 z-[200] w-56 rounded-2xl  border-none bg-[var(--wf-btn-bg)] shadow-2xl py-1.5 px-1.5 overflow-hidden">
           <MenuItem
             icon={<ArrowLeft size={15} />}
             label="Back"
             onClick={() => { setMenuOpen(false); router.push("/dashboard"); }}
           />
 
-          <div className="my-1.5 border-t border-[var(--wf-border)]" />
+          <div className="my-1.5" />
 
           <MenuItem
             icon={<Upload size={15} />}
@@ -155,7 +175,7 @@ function MenuItem({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-[var(--wf-text-primary)] hover:bg-[var(--wf-btn-bg)] transition-colors"
+      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-[var(--wf-text-primary)] hover:bg-[var(--wf-btn-bg-hover)] rounded-lg transition-colors"
     >
       <span className="text-[var(--wf-text-secondary)] shrink-0">{icon}</span>
       <span className="flex-1 text-left font-medium">{label}</span>
