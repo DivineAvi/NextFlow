@@ -14,7 +14,7 @@ interface SidebarResizeState {
 }
 
 export function useSidebarResize(defaultWidth = 300): SidebarResizeState {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(() => window?.innerWidth >= 768);
   const [width, setWidth] = useState(defaultWidth);
   const [isResizing, setIsResizing] = useState(false);
 
