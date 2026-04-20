@@ -31,13 +31,20 @@ export const EDGE_TYPES: EdgeTypes = {
     default: CustomEdge,
 };
 
-// Map from Registry output type → edge tone so connected edges pick the right color.
+import { TONE_TO_DATA_TYPE } from "@/ui/workflow-builder/tokens/data-type-colors";
+
+// Derived from DATA_TYPE_COLORS: type → tone (inverse of TONE_TO_DATA_TYPE).
+// Do not add colors here — update tokens/data-type-colors.ts instead.
+const DATA_TYPE_TO_TONE: Record<string, EdgeTone> = Object.fromEntries(
+  Object.entries(TONE_TO_DATA_TYPE).map(([tone, dataType]) => [dataType, tone as EdgeTone])
+) as Record<string, EdgeTone>;
+
 export const HANDLER_TYPE_TO_TONE: Record<string, EdgeTone> = {
-    string: "yellow",
-    text: "yellow",
-    image: "blue",
-    video: "pink",
-    number: "orange",
-    boolean: "orange",
-    any: "yellow"
+  string:  DATA_TYPE_TO_TONE["string"]  ?? "yellow",
+  text:    DATA_TYPE_TO_TONE["string"]  ?? "yellow",
+  image:   DATA_TYPE_TO_TONE["image"]   ?? "blue",
+  video:   DATA_TYPE_TO_TONE["video"]   ?? "pink",
+  number:  DATA_TYPE_TO_TONE["number"]  ?? "orange",
+  boolean: DATA_TYPE_TO_TONE["boolean"] ?? "orange",
+  any:     "zinc",
 };

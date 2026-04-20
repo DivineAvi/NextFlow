@@ -122,14 +122,14 @@ export function LLMNode(props: NodeProps) {
 
       {/* ── Inline output (shown after execution) ─────────────────────── */}
       {output && (
-        <div className=" nodrag nopan mx-3 mb-3 rounded-md border border-zinc-700 bg-[#171717] overflow-hidden max-w-[240px] overflow-y-scroll">
-          <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-700">
-            <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-semibold">
+        <div className="nodrag nopan mx-3 mb-3 rounded-md border border-[var(--wf-border-subtle)] bg-[var(--wf-bg-input)] overflow-hidden max-w-[240px] overflow-y-scroll">
+          <div className="flex items-center justify-between px-2 py-1 border-b border-[var(--wf-border-subtle)]">
+            <span className="text-[9px] uppercase tracking-widest text-[var(--wf-text-muted)] font-semibold">
               Output
             </span>
             <CopyButton value={output} />
           </div>
-          <div className="p-2 max-h-40 overflow-y-auto text-[11px] text-zinc-300 whitespace-pre-wrap leading-relaxed">
+          <div className="p-2 max-h-40 overflow-y-auto text-[11px] text-[var(--wf-text-secondary)] whitespace-pre-wrap leading-relaxed">
             {output}
           </div>
         </div>

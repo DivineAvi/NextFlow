@@ -52,7 +52,7 @@ export function SelectorRenderer({
             w-full px-1 rounded-sm border transition-all duration-200
             text-[11px] font-medium outline-none
             ${inputSurfaceTone[tone]} ${inputTextTone[tone]}
-            ${isOpen ? 'border-zinc-400 brightness-110' : 'border-transparent hover:brightness-105'}
+            ${isOpen ? 'border-[var(--wf-border-subtle)]' : 'border-transparent hover:brightness-105'}
             shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]
           `}
       >
@@ -66,7 +66,7 @@ export function SelectorRenderer({
       </button>
 
       {isOpen && (
-        <div className="absolute z-[100] w-full mt-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute z-[100] w-full mt-1.5 p-1 bg-[var(--wf-bg-surface)] border border-[var(--wf-border)] rounded-lg shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
           <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
             {options.map((opt) => (
               <button
@@ -81,12 +81,12 @@ export function SelectorRenderer({
                     w-full px-2.5 py-1.5 my-0.5 rounded-md text-left text-[11px]
                     transition-colors duration-100
                     ${internalValue === opt.value
-                    ? 'bg-zinc-800 text-white'
-                    : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'}
+                    ? 'bg-[var(--wf-btn-bg-hover)] text-[var(--wf-text-primary)]'
+                    : 'text-[var(--wf-text-secondary)] hover:bg-[var(--wf-btn-bg)] hover:text-[var(--wf-text-primary)]'}
                   `}
               >
                 {opt.label}
-                {internalValue === opt.value && <Check size={10} className="text-zinc-100" />}
+                {internalValue === opt.value && <Check size={10} className="text-[var(--wf-text-primary)]" />}
               </button>
             ))}
           </div>

@@ -2,7 +2,7 @@ import { NodeDefinitionSchema, NodeDefinition } from '../schema/node';
 
 export const TextInputNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
   type: 'text_node',
-  title: 'Text Node',
+  title: 'Text',
   category: 'Input',
   description: 'Provides a static string block to the workflow',
   inputs: [], // Source node: no inputs!

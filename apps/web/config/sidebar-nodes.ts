@@ -13,7 +13,7 @@ import { LLMNodeIcon, TextNodeIcon } from "@nextflow/ui";
 import {NodeRegistry} from "@nextflow/core";
 import { NODE_DEFINATIONS } from "@/ui/workflow-builder/type";
 /** Lucide icons or custom SVG components. */
-export type SidebarNodeIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
+export type SidebarNodeIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>> | undefined;
 
 export type NodeCategory = "Input" | "AI" | "Image" | "Video" | "Utility";
 
@@ -26,6 +26,7 @@ export interface SidebarNode {
   description: string;
   icon: SidebarNodeIcon;
   category: NodeCategory;
+  icon_url?: string;
   /** Optional keyboard shortcut hint shown in the dropdown. */
   shortcut?: string;
 }
@@ -38,7 +39,8 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: NODE_DEFINATIONS.LLMNodeDefination.title,
     type: NODE_DEFINATIONS.LLMNodeDefination.type,
     description: NODE_DEFINATIONS.LLMNodeDefination.description,
-    icon: LLMNodeIcon,
+    icon: undefined,
+    icon_url: "https://optim-images.krea.ai/https---s-krea-ai-icons-Enhance-png-128.webp",
     category: 'AI',
     shortcut: 'Ctrl+L',
   },
@@ -47,7 +49,8 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: NODE_DEFINATIONS.TextNodeDefination.title,
     type: NODE_DEFINATIONS.TextNodeDefination.type,
     description: NODE_DEFINATIONS.TextNodeDefination.description,
-    icon: TextNodeIcon,
+    icon: undefined,
+    icon_url: "https://optim-images.krea.ai/https---s-krea-ai-icons-realtimeV2-png-128.webp",
     category: 'Input',
     shortcut: 'Ctrl+T',
   },
@@ -56,7 +59,8 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: NODE_DEFINATIONS.ImageCropNodeDefination.title,
     type: NODE_DEFINATIONS.ImageCropNodeDefination.type,
     description: NODE_DEFINATIONS.ImageCropNodeDefination.description,
-    icon: ImageIcon,
+    icon: undefined,
+    icon_url: "https://optim-images.krea.ai/https---s-krea-ai-icons-Edit-png-128.webp",
     category: 'Image',
     shortcut: 'Ctrl+I',
   },
@@ -66,7 +70,8 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: NODE_DEFINATIONS.ExtractFrameNodeDefination.title,
     type: NODE_DEFINATIONS.ExtractFrameNodeDefination.type,
     description: NODE_DEFINATIONS.ExtractFrameNodeDefination.description,
-    icon: Film,
+    icon_url: "https://optim-images.krea.ai/https---s-krea-ai-icons-VideoRestyle2-png-128.webp",
+    icon: undefined,
     category: 'Video',
     shortcut: 'Ctrl+E',
   },
@@ -75,7 +80,8 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: NODE_DEFINATIONS.UploadImageNodeDefination.title,
     type: NODE_DEFINATIONS.UploadImageNodeDefination.type,
     description: NODE_DEFINATIONS.UploadImageNodeDefination.description,
-    icon: ImageIcon,
+    icon_url: "https://optim-images.krea.ai/https---s-krea-ai-icons-imageV4-png-128.webp",
+    icon: undefined,
     category: 'Input',
     shortcut: 'Ctrl+U',
   },
@@ -84,7 +90,8 @@ export const SIDEBAR_NODES: SidebarNode[] = [
     label: NODE_DEFINATIONS.UploadVideoNodeDefination.title,
     type: NODE_DEFINATIONS.UploadVideoNodeDefination.type,
     description: NODE_DEFINATIONS.UploadVideoNodeDefination.description,
-    icon: Film,
+    icon: undefined,
+    icon_url: "https://optim-images.krea.ai/https---s-krea-ai-icons-videoV2-png-128.webp",
     category: 'Input',
     shortcut: 'Ctrl+V',
   },

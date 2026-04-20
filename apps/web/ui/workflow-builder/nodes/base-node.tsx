@@ -1,71 +1,11 @@
-import { ComponentType, memo, SVGProps, useState } from "react";
+import { ComponentType, memo, SVGProps, useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Loader2, Pause, Play, Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import type { NodeProps } from "reactflow";
-import { rgba } from "polished";
-import { useCanvasStore } from "@/store/canvas-store";
-import { useShallow } from "zustand/react/shallow";
+import { getToneColor } from "@/ui/workflow-builder/tokens/data-type-colors";
 
 export type BaseNodeTone = "yellow" | "blue" | "green" | "red" | "orange" | "purple" | "pink" | "gray" | "brown" | "black" | "white";
 export type NODE_STATUS = "RUNNING" | "COMPLETED" | "FAILED" | "PENDING";
-
-const BASE_NODE_TONES: Record<BaseNodeTone, Record<string, string>> = {
-  yellow: {
-    color: "#fcc804",
-    border: "border-yellow-500",
-    shadow: "shadow-[0_0_30px_rgba(234,179,8,0.35)]",
-  },
-    blue: {
-    color: "#3b82f6",
-    border: "border-blue-500",
-    shadow: "shadow-[0_0_15px_rgba(59,130,246,0.5)]",
-  },
-  green: {
-    color: "#22c55e",
-    border: "border-green-500",
-    shadow: "shadow-[0_0_15px_rgba(22,163,74,0.5)]",
-  },
-  red: {
-    color: "#ef4444",
-    border: "border-red-500",
-    shadow: "shadow-[0_0_15px_rgba(239,68,68,0.5)]",
-  },
-  orange: {
-    color: "#f97316",
-    border: "border-orange-500",
-    shadow: "shadow-[0_0_15px_rgba(245,158,11,0.5)]",
-  },
-  purple: {
-    color: "#a855f7",
-    border: "border-purple-500",
-    shadow: "shadow-[0_0_15px_rgba(168,85,247,0.5)]",
-  },
-  pink: {
-    color: "#f472b6",
-    border: "border-pink-500",
-    shadow: "shadow-[0_0_15px_rgba(236,72,153,0.5)]",
-  },
-  gray: {
-    color: "#71717a",
-    border: "border-gray-500",
-    shadow: "shadow-[0_0_15px_rgba(107,114,128,0.5)]",
-  },
-  brown: {
-    color: "#a855f7",
-    border: "border-brown-500",
-    shadow: "shadow-[0_0_15px_rgba(163,78,52,0.5)]",
-  },
-  black: {
-    color: "#000000",
-    border: "border-black-500",
-    shadow: "shadow-[0_0_15px_rgba(0,0,0,0.5)]",
-  },
-  white: {
-    color: "#ffffff",
-    border: "border-white-500",
-    shadow: "shadow-[0_0_15px_rgba(255,255,255,0.5)]",
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Types
@@ -113,15 +53,13 @@ export const BaseNode = memo(function BaseNode({
 }: BaseNodeProps) {
   const Icon = icon as ComponentType<SVGProps<SVGSVGElement>>;
   const [label, setLabel] = useState<string>(data.label);
-  const { execution, runWorkflow, runNode } = useCanvasStore(
-    useShallow((s) => ({
-      execution: s.execution,
-      runWorkflow: s.runWorkflow,
-      runNode: s.runNode,
-    }))
-  );
+  const [isErrorVisible, setIsErrorVisible] = useState(false);
 
-  const isRunning = execution.isRunning;
+  useEffect(() => {
+    if (data.status === "FAILED" && data.error) {
+      setIsErrorVisible(true);
+    }
+  }, [data.error]);
   const nodeError: string | undefined = data.error;
 
   return (
@@ -129,25 +67,7 @@ export const BaseNode = memo(function BaseNode({
       style={{ minWidth, minHeight, width: Width, height: Height }}
       className="group flex flex-col"
     >
-      {/* Hover action buttons — shown to the left of the node */}
-      <div className="nodrag nopan absolute top-0 right-[102%] opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col gap-1 items-end">
-        <button
-          onClick={() => runNode(id)}
-          disabled={isRunning}
-          className="whitespace-nowrap flex items-center gap-1.5 h-6 px-2.5 rounded-lg bg-zinc-700 text-zinc-200 text-[11px] shadow-lg hover:bg-zinc-600 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {isRunning ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} fill="currentColor" />}
-          Run Node
-        </button>
-        <button
-          onClick={runWorkflow}
-          disabled={isRunning}
-          className="whitespace-nowrap flex items-center gap-1.5 h-6 px-2.5 rounded-lg bg-blue-600 text-white text-[11px] shadow-lg hover:bg-blue-500 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {isRunning ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} fill="currentColor" />}
-          Run Workflow
-        </button>
-      </div>
+
 
       {/* Label row */}
       <div className="flex items-center gap-1 px-1/2 w-fit h-5">
@@ -156,40 +76,55 @@ export const BaseNode = memo(function BaseNode({
           <input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            className="nodrag nopan absolute z-10 left-0 top-1/2 -translate-y-1/2 outline-none text-xs text-[#737373] px-1 py-0.5 rounded-md cursor-text tracking-tight"
+            className="nodrag nopan absolute z-10 left-0 top-1/2 -translate-y-1/2 outline-none text-xs text-[var(--wf-text-muted)] px-1 py-0.5 rounded-md cursor-text tracking-tight"
           />
         </div>
       </div>
 
-      {/* Error banner — shown above the node body when execution fails */}
-      {data.status === "FAILED" && nodeError && (
-        <div className="mb-1 flex items-start gap-1.5 rounded-md border border-red-700/60 bg-red-950/70 px-2 py-1.5 text-[10px] text-red-300 leading-snug max-w-[240px]">
-          <Sparkles size={10} className="shrink-0 mt-0.5 text-red-400" />
-          <span className="break-words">{nodeError}</span>
-        </div>
-      )}
+{/* Error banner — shown above the node body when execution fails */}
+{data.status === "FAILED" && nodeError && (
+  <div className={`mb-1 flex items-start gap-1.5 rounded-md bg-[#4d3318] px-2 py-1.5 text-[10px] text-[#e7c194] leading-snug max-w-[240px] ${isErrorVisible ? "block" : "hidden"}`}>
+    <Sparkles size={10} className="shrink-0 mt-0.5 text-[#e7c194]" />
+    
+    {/* Added flex-1 to push the close button to the far right */}
+    <span className="line-clamp-3 break-words flex-1" title={nodeError}>
+      {nodeError}
+    </span>
+
+    {/* Close Button */}
+    <button 
+      onClick={() => {
+        setIsErrorVisible(false);
+      }}
+      className="shrink-0 mt-0.5 text-[#e7c194]/70 hover:text-[#e7c194] transition-colors"
+      aria-label="Close error banner"
+    >
+      <X size={10} />
+    </button>
+  </div>
+)}
 
       {/* Body */}
       <div
-        className={`rounded-[12px] border-2 bg-[#262626] text-[#737373] flex-1 transition-all duration-300 ${
+        className={`rounded-[12px] border-2 bg-[var(--wf-bg-node)] text-[var(--wf-text-muted)] flex-1 transition-all duration-300 ${
           data.status === "RUNNING"
-            ? BASE_NODE_TONES[tone].border + " !border-1 animate-pulse-shadow"
+            ? getToneColor(tone).border + " !border-1 animate-pulse-shadow"
             : data.status === "COMPLETED"
-              ? BASE_NODE_TONES[tone].border
+              ? getToneColor(tone).border
               : data.status === "FAILED"
                 ? "border-red-500"
                 : selected
-                  ? BASE_NODE_TONES[tone].border
-                  : "border-zinc-800"
+                  ? getToneColor(tone).border
+                  : "border-[var(--wf-border)]"
         }`}
         style={
           {
-            "--pulse-shadow-color": rgba(BASE_NODE_TONES[tone].color, 0.4),
+            "--pulse-shadow-color": getToneColor(tone).pulseRgba,
           } as React.CSSProperties
         }
       >
         {preview && (
-          <div className="overflow-hidden rounded-t-[10px] border-b border-zinc-700/40">
+          <div className="overflow-hidden rounded-t-[10px] border-b border-[var(--wf-border)]">
             {preview}
           </div>
         )}

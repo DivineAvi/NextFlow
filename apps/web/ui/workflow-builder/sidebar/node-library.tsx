@@ -47,7 +47,7 @@ export function NodeLibrary({
             onClick={() => setSectionHidden(!sectionHidden)}
             className="flex h-9 w-full items-center justify-between truncate rounded-md px-4 text-sm font-medium hover:cursor-pointer hover:bg-zinc-200/30 hover:transition-colors hover:duration-200 dark:text-zinc-600 dark:hover:bg-zinc-800/50"
           >
-            <span>Quick Access</span>
+            <span>Quick </span>
           </button>
 
           {isSearchable && !isCollapsed && (

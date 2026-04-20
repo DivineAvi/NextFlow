@@ -56,9 +56,16 @@ interface CanvasStore {
   setExecutionIdle: () => void;
   applyNodeStatuses: (statuses: Record<string, { status: string; output?: any; error?: string }>) => void;
 
+  historySidebarOpen: boolean;
+  toggleHistorySidebar: () => void;
+
+  theme: "dark" | "light";
+  toggleTheme: () => void;
+
   runWorkflow: () => Promise<void>;
   runNode: (nodeId: string) => Promise<void>;
   runSelected: () => Promise<void>;
+  runConnectedComponent: (nodeIds: string[]) => Promise<void>;
 
   pushHistory: () => void;
   undo: () => void;
@@ -82,6 +89,10 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
   history: [],
   historyIndex: -1,
+  historySidebarOpen: true,
+  toggleHistorySidebar: () => set((s) => ({ historySidebarOpen: !s.historySidebarOpen })),
+  theme: "dark",
+  toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
 
   onNodesChange: (changes) => {
     set({ nodes: applyNodeChanges(changes, get().nodes) });
@@ -224,6 +235,38 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
     } catch (e: any) { console.error("runSelected error:", e.message); }
+  },
+
+  runConnectedComponent: async (nodeIds: string[]) => {
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    if (execution.isRunning) return;
+
+    // BFS both directions from every seed node — unions all connected components
+    const included = new Set<string>();
+    const queue = [...nodeIds];
+    while (queue.length > 0) {
+      const cur = queue.pop()!;
+      if (included.has(cur)) continue;
+      included.add(cur);
+      for (const e of edges) {
+        if (e.target === cur && !included.has(e.source)) queue.push(e.source);
+        if (e.source === cur && !included.has(e.target)) queue.push(e.target);
+      }
+    }
+    const subNodes = nodes.filter((n) => included.has(n.id));
+    const subEdges = edges.filter((e) => included.has(e.source) && included.has(e.target));
+
+    try {
+      const res = await fetch("/api/execute-workflow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workflowId, nodes: subNodes, edges: subEdges, scope: "FULL" }),
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Run failed"); }
+      const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
+      if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
+      setExecutionRunning(runId, triggerRunId);
+    } catch (e: any) { console.error("runConnectedComponent error:", e.message); }
   },
 
   pushHistory: () => {

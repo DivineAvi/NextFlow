@@ -52,6 +52,44 @@
   }
 }
 
+/* ── Workflow builder theme tokens ────────────────────────────────────── */
+
+[data-theme="dark"] {
+  --wf-bg-canvas:       #101010;
+  --wf-bg-sidebar:      #000000;
+  --wf-bg-node:         #202020;
+  --wf-bg-surface:      #000000;
+  --wf-bg-input:        #171717;
+  --wf-border:          #27272a;
+  --wf-border-subtle:   #3f3f46;
+  --wf-text-primary:    #f5f5f5;
+  --wf-text-secondary:  #a1a1aa;
+  --wf-text-muted:      #737373;
+  --wf-text-faint:      #52525b;
+  --wf-btn-bg:          #202020;
+  --wf-btn-bg-hover:    #404040;
+  --wf-btn-text:        #a1a1aa;
+  --wf-btn-text-hover:  #f5f5f5;
+}
+
+[data-theme="light"] {
+  --wf-bg-canvas:       #f0f0f0;
+  --wf-bg-sidebar:      #fafafa;
+  --wf-bg-node:         #ffffff;
+  --wf-bg-surface:      #f4f4f5;
+  --wf-bg-input:        #ebebec;
+  --wf-border:          #e4e4e7;
+  --wf-border-subtle:   #d4d4d8;
+  --wf-text-primary:    #18181b;
+  --wf-text-secondary:  #71717a;
+  --wf-text-muted:      #a1a1aa;
+  --wf-text-faint:      #a1a1aa;
+  --wf-btn-bg:          #e4e4e7;
+  --wf-btn-bg-hover:    #d4d4d8;
+  --wf-btn-text:        #71717a;
+  --wf-btn-text-hover:  #18181b;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

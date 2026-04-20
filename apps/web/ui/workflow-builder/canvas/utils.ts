@@ -30,17 +30,22 @@ export function GenerateDefaultNodeData(nodeType: string): Record<string, any> {
 }
 
 export function MapEdgeColors(
-  sourceNode: Node | undefined,
-  handleId: string | null
+  node: Node | undefined,
+  handleId: string | null,
+  handleType?: "source" | "target" | null
 ): string {
-  if (!sourceNode || !handleId) return EDGE_COLORS["yellow"].stroke;
+  if (!node || !handleId) return EDGE_COLORS["yellow"].stroke;
 
-  const sourceDef = AvailableNodesList.find((n) => n.type === sourceNode.type);
-  if (!sourceDef) return EDGE_COLORS["yellow"].stroke;
+  const def = AvailableNodesList.find((n) => n.type === node.type);
+  if (!def) return EDGE_COLORS["yellow"].stroke;
 
-  const outputPort = sourceDef.outputs.find((o) => o.id === handleId);
-  if (!outputPort) return EDGE_COLORS["yellow"].stroke;
+  const port =
+    handleType === "target"
+      ? def.inputs?.find((i) => i.id === handleId)
+      : def.outputs.find((o) => o.id === handleId) ?? def.inputs?.find((i) => i.id === handleId);
 
-  const tone = HANDLER_TYPE_TO_TONE[outputPort.type];
+  if (!port) return EDGE_COLORS["yellow"].stroke;
+
+  const tone = HANDLER_TYPE_TO_TONE[port.type];
   return tone ? EDGE_COLORS[tone].stroke : EDGE_COLORS["yellow"].stroke;
 }

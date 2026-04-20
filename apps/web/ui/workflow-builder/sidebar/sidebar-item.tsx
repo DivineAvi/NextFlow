@@ -2,15 +2,12 @@ import { SidebarNode } from "@/config/sidebar-nodes";
 import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@nextflow/ui";
 import { cn } from "@nextflow/utils";
 
-export default function NodeLibraryItem({ node, isCollapsed, onDragStart }: { node: SidebarNode, isCollapsed: boolean, onDragStart: (e: React.DragEvent, nodeType: string) => void }) {
-  const Icon = node.icon;
+export default function SidebarItem({ icon_url, label, isCollapsed}: { icon_url: string, label: string, isCollapsed: boolean }) {
   return (
-    <Tooltip key={node.id}>
+    <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  draggable
-                  onDragStart={(e) => onDragStart(e, node.type)}
-                  className="flex w-full justify-start"
+                  className="flex w-full items-center justify-start"
                 >
                   <Button
                     variant="ghost"
@@ -19,22 +16,20 @@ export default function NodeLibraryItem({ node, isCollapsed, onDragStart }: { no
                       isCollapsed ? "justify-start px-2" : "justify-start gap-3 px-4"
                     )}
                   >
-
-                    {Icon && <Icon className="size-6 shrink-0" aria-hidden />}
-                    {node.icon_url && <img src={node.icon_url} alt="icon" className="w-5 h-5" />}
+                    <img src={icon_url} alt="icon" className="w-5 h-5" />
                     <span
                       className={cn(
                         "font-suisse text-sm font-medium whitespace-nowrap transition-all duration-300 truncate",
                         isCollapsed ? "hidden w-0 opacity-0" : "w-auto opacity-100"
                       )}
                     >
-                      {node.label}
+                      {label}
                     </span>
                   </Button>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="right" align="center" hidden={!isCollapsed} hideWhenDetached>
-                {node.label}
+                {label}
               </TooltipContent>
             </Tooltip>
   );

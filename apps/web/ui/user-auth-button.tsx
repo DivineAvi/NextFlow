@@ -2,6 +2,7 @@
 
 import { useUser, SignInButton, Show } from "@clerk/nextjs";
 import { LogIn } from "lucide-react";
+import { Button } from "@nextflow/ui";
 
 interface UserAuthButtonProps {
   isCollapsed?: boolean;
@@ -32,19 +33,23 @@ export function UserAuthButton({ isCollapsed = false }: UserAuthButtonProps) {
 
       <Show when="signed-in">
         {isCollapsed ? (
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-900 text-xs font-medium text-zinc-300 border border-zinc-800">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--wf-btn-bg)] text-xs font-medium text-[var(--wf-text-secondary)] border border-[var(--wf-border)]">
             {email[0]?.toUpperCase() ?? "U"}
           </div>
         ) : (
-          <div className="flex items-center gap-2.5 rounded-md bg-zinc-900 border border-zinc-800 px-3 py-2">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-[10px] font-semibold text-zinc-200">
+          <Button className=" cursor-pointer flex w-full h-12 justify-between items-center gap-2.5 rounded-md bg-[var(--wf-bg-surface)] hover:bg-[var(--wf-btn-bg)] transition-colors border-none">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--wf-btn-bg)] border border-[var(--wf-border)] text-[10px] font-semibold text-[var(--wf-text-primary)]">
               {email[0]?.toUpperCase() ?? "U"}
             </div>
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[11px] text-zinc-300 leading-tight">{email}</span>
-              <span className="text-[9px] text-zinc-600 leading-tight">Free</span>
+              <span className="truncate text-[13px] text-[var(--wf-text-primary)] font-semibold leading-tight">{email}</span>
+              <span className="text-[9px] text-[var(--wf-text-faint)] leading-tight flex justify-start">Free</span>
             </div>
-          </div>
+            <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+
+            </div>
+       
+          </Button>
         )}
       </Show>
     </>

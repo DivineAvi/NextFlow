@@ -25,8 +25,8 @@ function Kbd({ children }: { children: ReactNode }) {
     <kbd
       className={cn(
         "pointer-events-none inline-flex h-6 min-w-6 items-center justify-center rounded-md",
-        "border border-zinc-700/80 bg-zinc-800/90 px-1.5 font-mono text-[11px] font-medium text-zinc-300",
-        "shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)]"
+        "border border-[var(--wf-border-subtle)] bg-[var(--wf-btn-bg)] px-1.5 font-mono text-[11px] font-medium text-[var(--wf-text-secondary)]",
+        "shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.15)]"
       )}
     >
       {children}
@@ -112,7 +112,7 @@ export function NodeLibrarySearchDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          "gap-0 overflow-hidden border-zinc-800/80 bg-[#1a1a1a] p-0 shadow-2xl",
+          "gap-0 overflow-hidden border-[var(--wf-border)] bg-[var(--wf-bg-surface)] p-0 shadow-2xl",
           "rounded-2xl sm:max-w-lg"
         )}
         showCloseButton={false}
@@ -124,8 +124,8 @@ export function NodeLibrarySearchDialog({
         <DialogTitle className="sr-only">Search nodes</DialogTitle>
 
         {/* Search header */}
-        <div className="flex items-center gap-3 border-b border-zinc-800/80 px-4 py-3.5">
-          <LayoutGrid className="size-5 shrink-0 text-zinc-500" strokeWidth={1.75} aria-hidden />
+        <div className="flex items-center gap-3 border-b border-[var(--wf-border)] px-4 py-3.5">
+          <LayoutGrid className="size-5 shrink-0 text-[var(--wf-text-muted)]" strokeWidth={1.75} aria-hidden />
           <label htmlFor={searchFieldId} className="sr-only">Search nodes</label>
           <input
             ref={inputRef}
@@ -142,8 +142,8 @@ export function NodeLibrarySearchDialog({
             autoComplete="off"
             spellCheck={false}
             className={cn(
-              "min-w-0 flex-1 bg-transparent text-[15px] text-zinc-100",
-              "placeholder:text-zinc-500",
+              "min-w-0 flex-1 bg-transparent text-[15px] text-[var(--wf-text-primary)]",
+              "placeholder:text-[var(--wf-text-muted)]",
               "outline-none"
             )}
           />
@@ -153,7 +153,7 @@ export function NodeLibrarySearchDialog({
         <ScrollArea className="max-h-[min(52vh,360px)]">
           <ul className="p-2" role="list" onMouseLeave={() => setHoveredIndex(null)}>
             {filtered.length === 0 ? (
-              <li className="rounded-xl px-3 py-10 text-center text-sm text-zinc-500">
+              <li className="rounded-xl px-3 py-10 text-center text-sm text-[var(--wf-text-muted)]">
                 No nodes match your search.
               </li>
             ) : (
@@ -177,18 +177,18 @@ export function NodeLibrarySearchDialog({
                         isKeyboardActive
                           ? "bg-[#2563eb] text-white shadow-sm"
                           : isMouseHover
-                            ? "bg-zinc-800/90 text-zinc-200"
-                            : "text-zinc-200"
+                            ? "bg-[var(--wf-btn-bg-hover)] text-[var(--wf-text-primary)]"
+                            : "text-[var(--wf-text-primary)]"
                       )}
                     >
                       <span
                         className={cn(
                           "flex size-11 shrink-0 items-center justify-center rounded-xl",
-                          isKeyboardActive ? "bg-white/15" : "bg-zinc-800"
+                          isKeyboardActive ? "bg-white/15" : "bg-[var(--wf-btn-bg)]"
                         )}
                       >
                         <Icon
-                          className={cn("size-[22px]", isKeyboardActive ? "text-white" : "text-zinc-300")}
+                          className={cn("size-[22px]", isKeyboardActive ? "text-white" : "text-[var(--wf-text-secondary)]")}
                           strokeWidth={1.75}
                           aria-hidden
                         />
@@ -211,7 +211,7 @@ export function NodeLibrarySearchDialog({
                           <span
                             className={cn(
                               "mt-1 block min-w-0 truncate text-[13px] leading-snug",
-                              isKeyboardActive ? "text-blue-100/90" : "text-zinc-500"
+                              isKeyboardActive ? "text-blue-100/90" : "text-[var(--wf-text-muted)]"
                             )}
                           >
                             {node.description}
@@ -230,21 +230,21 @@ export function NodeLibrarySearchDialog({
         </ScrollArea>
 
         {/* Keyboard hints */}
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-zinc-800/80 px-4 py-3 text-[11px] text-zinc-500">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-[var(--wf-border)] px-4 py-3 text-[11px] text-[var(--wf-text-muted)]">
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-flex items-center gap-0.5">
               <Kbd><ArrowUp className="size-3" aria-hidden /></Kbd>
               <Kbd><ArrowDown className="size-3" aria-hidden /></Kbd>
             </span>
-            <span className="text-zinc-400">Navigate</span>
+            <span className="text-[var(--wf-text-secondary)]">Navigate</span>
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Kbd><CornerDownLeft className="size-3" aria-hidden /></Kbd>
-            <span className="text-zinc-400">Select</span>
+            <span className="text-[var(--wf-text-secondary)]">Select</span>
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Kbd>Esc</Kbd>
-            <span className="text-zinc-400">Close</span>
+            <span className="text-[var(--wf-text-secondary)]">Close</span>
           </span>
         </div>
       </DialogContent>

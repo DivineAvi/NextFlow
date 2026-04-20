@@ -12,11 +12,13 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import { useShallow } from "zustand/react/shallow";
-import { Undo2, Redo2, Play, Loader2, FlaskConical, Boxes } from "lucide-react";
+import { Undo2, Redo2, FlaskConical, History, Sun, Moon, Maximize2 } from "lucide-react";
 
 import { CanvasEmptyState } from "./canvas-empty-state";
+import { SelectionToolbar } from "./selection-toolbar";
 import { useCanvasStore } from "@/store/canvas-store";
 import { NODE_TYPES, EDGE_TYPES } from "../type";
+import { THEME_CANVAS } from "../tokens/theme-tokens";
 import { GenerateDefaultNodeData } from "./utils";
 import { useConnectionHandler } from "./use-connection-handler";
 import { MapEdgeColors } from "./utils";
@@ -115,7 +117,9 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
     workflowId, workflowName,
     setWorkflowId, setWorkflowName,
     pushHistory, undo, redo, canUndo, canRedo,
-    setExecutionRunning, runSelected,
+    setExecutionRunning,
+    historySidebarOpen, toggleHistorySidebar,
+    theme, toggleTheme,
   } = useCanvasStore(
     useShallow((s) => ({
       nodes: s.nodes,
@@ -137,13 +141,14 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
       canUndo: s.canUndo,
       canRedo: s.canRedo,
       setExecutionRunning: s.setExecutionRunning,
-      runSelected: s.runSelected,
+      historySidebarOpen: s.historySidebarOpen,
+      toggleHistorySidebar: s.toggleHistorySidebar,
+      theme: s.theme,
+      toggleTheme: s.toggleTheme,
     }))
   );
 
-  const selectedCount = nodes.filter((n) => n.selected).length;
-
-  const { screenToFlowPosition, addNodes, setNodes } = useReactFlow();
+  const { screenToFlowPosition, addNodes, setNodes, fitView } = useReactFlow();
   const [runError, setRunError] = useState<string | null>(null);
   const [connectLineStyle, setConnectLineStyle] = useState<React.CSSProperties>({
     stroke: "#71717a",
@@ -204,7 +209,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
   const onConnectStart = useCallback(
     (_: React.MouseEvent | React.TouchEvent, params: OnConnectStartParams) => {
       const sourceNode = nodes.find((n) => n.id === params.nodeId);
-      const stroke = MapEdgeColors(sourceNode, params.handleId);
+      const stroke = MapEdgeColors(sourceNode, params.handleId, params.handleType);
       setConnectLineStyle({ stroke, strokeWidth: 2 });
     },
     [nodes]
@@ -293,13 +298,14 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
 
   return (
     <div
-      className="h-screen w-full bg-[#101010]"
+      className="h-screen w-full bg-[var(--wf-bg-canvas)]"
       onDrop={onDrop}
       onDragOver={onDragOver}
     >
       {nodes.length === 0 && <CanvasEmptyState />}
 
       <ReactFlow
+        proOptions={{ hideAttribution: true }}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -325,20 +331,46 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
         fitView
         deleteKeyCode={["Delete", "Backspace"]}
       >
-        <Background color="#262626" gap={20} />
+        <SelectionToolbar />
+        <Background color={THEME_CANVAS[theme].gridColor} gap={20} />
 
         <MiniMap
           position="bottom-right"
-          nodeColor="#52525B"
-          maskColor="rgba(0,0,0,0.4)"
+          nodeColor={THEME_CANVAS[theme].minimapNode}
+          maskColor={THEME_CANVAS[theme].minimapMask}
           style={{
-            backgroundColor: "#1c1c1c",
+            backgroundColor: THEME_CANVAS[theme].minimapBg,
             borderRadius: "12px",
-            border: "1px solid #27272a",
+            border: `1px solid ${THEME_CANVAS[theme].minimapBorder}`,
           }}
         />
 
-        {/* ── Top-right toolbar ─────────────────────────────────────── */}
+        {/* ── Top-right toolbar: theme + history ───────────────────── */}
+        <Panel position="top-right">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] transition"
+            >
+              {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+            <button
+              onClick={toggleHistorySidebar}
+              title={historySidebarOpen ? "Hide history" : "Show history"}
+              className={`flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition ${
+                historySidebarOpen
+                  ? "bg-[var(--wf-btn-bg-hover)] text-[var(--wf-btn-text-hover)]"
+                  : "bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)]"
+              }`}
+            >
+              <History size={13} />
+              History
+            </button>
+          </div>
+        </Panel>
+
+        {/* ── Bottom-left toolbar ───────────────────────────────────── */}
         <Panel position="bottom-left">
           <div className="flex items-center gap-2">
             {/* Undo / Redo */}
@@ -346,7 +378,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
               onClick={undo}
               disabled={!canUndo()}
               title="Undo (Ctrl+Z)"
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition"
             >
               <Undo2 size={14} />
             </button>
@@ -354,37 +386,30 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
               onClick={redo}
               disabled={!canRedo()}
               title="Redo (Ctrl+Shift+Z)"
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition"
             >
               <Redo2 size={14} />
+            </button>
+
+            {/* Fit to window */}
+            <button
+              onClick={() => fitView({ padding: 0.1, duration: 300 })}
+              title="Fit to window"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] transition"
+            >
+              <Maximize2 size={14} />
             </button>
 
             {/* Load sample workflow */}
             <button
               onClick={handleLoadSample}
               title="Load sample workflow"
-              className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100 text-xs font-medium transition"
+              className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] text-xs font-medium transition"
             >
               <FlaskConical size={13} />
               Sample
             </button>
 
-            {/* Run Selected — only visible when nodes are selected */}
-            {selectedCount > 0 && (
-              <button
-                onClick={runSelected}
-                disabled={execution.isRunning}
-                title={`Run ${selectedCount} selected node${selectedCount > 1 ? "s" : ""}`}
-                className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-violet-700 text-white hover:bg-violet-600 text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {execution.isRunning ? (
-                  <Loader2 size={13} className="animate-spin" />
-                ) : (
-                  <Boxes size={13} />
-                )}
-                Run Selected ({selectedCount})
-              </button>
-            )}
           </div>
 
           {/* Error toast */}

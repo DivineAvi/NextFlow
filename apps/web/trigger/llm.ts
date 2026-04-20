@@ -53,12 +53,13 @@ export const llmNodeTask = task({
 
     userParts.push({ text: payload.userMessage });
 
-    const result = await model.generateContent({
+    const request: Record<string, unknown> = {
       contents: [{ role: "user", parts: userParts }],
-      ...(payload.systemPrompt?.trim() && {
-        systemInstruction: { parts: [{ text: payload.systemPrompt }] },
-      }),
-    });
+    };
+    if (payload.systemPrompt?.trim()) {
+      request.systemInstruction = { parts: [{ text: payload.systemPrompt }] };
+    }
+    const result = await model.generateContent(request as any);
     const responseText = result.response.text();
 
     return { output: responseText };
