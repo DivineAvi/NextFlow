@@ -27,7 +27,7 @@ export const nodeExecutorTask = task({
           systemPrompt: inputs["system_prompt"] ?? undefined,
           userMessage: inputs["user_prompt"] ?? "",
           imageUrls,
-          model: inputs["model"] || "gemini-1.5-flash",
+          model: inputs["model"] || "gemini-2.5-flash",
         });
 
         if (!result.ok) throw new Error(String(result.error ?? "LLM task failed"));

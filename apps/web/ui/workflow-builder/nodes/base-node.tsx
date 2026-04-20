@@ -1,6 +1,6 @@
 import { ComponentType, memo, SVGProps, useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Sparkles, X } from "lucide-react";
+import { ClipboardIcon, Sparkles, X } from "lucide-react";
 import type { NodeProps } from "reactflow";
 import { getToneColor } from "@/ui/workflow-builder/tokens/data-type-colors";
 
@@ -83,7 +83,10 @@ export const BaseNode = memo(function BaseNode({
 
 {/* Error banner — shown above the node body when execution fails */}
 {data.status === "FAILED" && nodeError && (
-  <div className={`mb-1 flex items-start gap-1.5 rounded-md bg-[#4d3318] px-2 py-1.5 text-[10px] text-[#e7c194] leading-snug max-w-[240px] ${isErrorVisible ? "block" : "hidden"}`}>
+  <div className={`mb-1 flex flex-col items-start gap-1.5 rounded-md bg-[#4d3318] px-2 py-1.5 text-[10px] text-[#e7c194] leading-snug max-w-[240px] ${isErrorVisible ? "block" : "hidden"}`}>
+    <div className="flex items-start gap-1 w-full">
+
+    
     <Sparkles size={10} className="shrink-0 mt-0.5 text-[#e7c194]" />
     
     {/* Added flex-1 to push the close button to the far right */}
@@ -99,7 +102,24 @@ export const BaseNode = memo(function BaseNode({
       className="shrink-0 mt-0.5 text-[#e7c194]/70 hover:text-[#e7c194] transition-colors"
       aria-label="Close error banner"
     >
-      <X size={10} />
+      <X size={10} /> 
+    </button>
+  </div>
+    {/* Copy Error Button */}
+    <button
+      onClick={() => {
+        if (nodeError) {
+          navigator.clipboard.writeText(nodeError);
+        }
+      }}
+      className="flex items-center gap-1 shrink-0 mt-0.5 ml-1 text-[#e7c194]/70 hover:text-[#e7c194] hover:cursor-pointer hover:bg-[#e7c194]/10 rounded-md p-1 transition-colors"
+      aria-label="Copy error message"
+      title="Copy error message"
+      type="button"
+    >
+
+      <ClipboardIcon size={10} />
+      Copy Error details
     </button>
   </div>
 )}

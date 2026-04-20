@@ -1,6 +1,6 @@
 import { task, metadata } from "@trigger.dev/sdk/v3";
 import type { Node, Edge } from "reactflow";
-import { db } from "@nextflow/core";
+import { db, validateResolvedInputs } from "@nextflow/core";
 import { nodeExecutorTask, type NodeExecutorPayload } from "./node-executor";
 
 // ---------------------------------------------------------------------------
@@ -140,9 +140,30 @@ export const workflowOrchestrator = task({
         inputsMap.set(node.id, buildInputs(node, edges, nodeOutputs));
       }
 
-      // ── 3. Create DB records and mark all as RUNNING ──────────────────────
-      const nodeRunIds = new Map<string, string>();
+      // ── 3. Validate resolved inputs before touching the DB ───────────────
       for (const node of executableNodes) {
+        const inputs = inputsMap.get(node.id)!;
+        const label = node.data?.label ?? node.type ?? node.id;
+        const validation = validateResolvedInputs(node.id, node.type ?? "", label, inputs);
+        if (!validation.valid) {
+          // Fail this node immediately without creating a run
+          done.set(node.id, false);
+          nodeStatuses[node.id] = {
+            status: "FAILED",
+            error: validation.errors.join("; "),
+          };
+        }
+      }
+
+      const validNodes = executableNodes.filter((n) => !done.has(n.id));
+      if (validNodes.length === 0) {
+        await metadata.set("nodeStatuses", nodeStatuses);
+        continue;
+      }
+
+      // ── 4. Create DB records and mark all as RUNNING ──────────────────────
+      const nodeRunIds = new Map<string, string>();
+      for (const node of validNodes) {
         const nodeRun = await db.nodeRun.create({
           data: {
             workflowRunId,
@@ -158,8 +179,8 @@ export const workflowOrchestrator = task({
       }
       await metadata.set("nodeStatuses", nodeStatuses);
 
-      // ── 4. Execute the entire level in parallel via batchTriggerAndWait ───
-      const batchItems = executableNodes.map((node) => ({
+      // ── 5. Execute the valid nodes in parallel via batchTriggerAndWait ───
+      const batchItems = validNodes.map((node) => ({
         payload: {
           nodeId: node.id,
           nodeType: node.type ?? "",
@@ -169,9 +190,9 @@ export const workflowOrchestrator = task({
 
       const batchResult = await nodeExecutorTask.batchTriggerAndWait(batchItems);
 
-      // ── 5. Process results and persist to DB ──────────────────────────────
-      for (let i = 0; i < executableNodes.length; i++) {
-        const node = executableNodes[i];
+      // ── 6. Process results and persist to DB ──────────────────────────────
+      for (let i = 0; i < validNodes.length; i++) {
+        const node = validNodes[i];
         const run = batchResult.runs[i];
         const nodeRunId = nodeRunIds.get(node.id)!;
         const inputs = inputsMap.get(node.id)!;

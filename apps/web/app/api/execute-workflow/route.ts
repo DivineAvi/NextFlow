@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { db } from "@nextflow/core";
+import { db, validateWorkflowPayload } from "@nextflow/core";
 import { workflowOrchestrator } from "@/trigger/orchestrator";
 
 export async function POST(request: Request) {
@@ -13,9 +13,17 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { nodes, edges, workflowId: bodyWorkflowId, scope = "FULL" } = body;
 
-    if (!nodes || !edges) {
+    if (!Array.isArray(nodes) || !Array.isArray(edges)) {
       return NextResponse.json(
         { error: "nodes and edges are required" },
+        { status: 400 }
+      );
+    }
+
+    const validation = validateWorkflowPayload(nodes, edges);
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: "Workflow validation failed", details: validation.errors },
         { status: 400 }
       );
     }

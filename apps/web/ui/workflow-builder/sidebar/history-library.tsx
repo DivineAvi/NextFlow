@@ -75,14 +75,64 @@ function NodeRunRow({ nr }: { nr: NodeRun }) {
         {nr.error && (
           <p className="text-[10px] text-red-400 truncate mt-0.5">✕ {nr.error}</p>
         )}
-        {nr.outputs?.output && (
-          <p className="text-[10px] text-[var(--wf-text-muted)] line-clamp-2 break-all mt-0.5">
-            ↳ {
-              typeof nr.outputs.output === "string" && nr.outputs.output.startsWith("data:")
-                ? "[image data]"
-                : String(nr.outputs.output)
-            }
-          </p>
+        {(nr.outputs?.output || nr.error) && (
+          <div className="flex items-center gap-2 mt-0.5">
+            {nr.outputs?.output && (
+              <p className="text-[10px] text-[var(--wf-text-muted)] line-clamp-2 break-all flex-1">
+                ↳ {
+                  typeof nr.outputs.output === "string" && nr.outputs.output.startsWith("data:")
+                    ? "[image data]"
+                    : String(nr.outputs.output)
+                }
+              </p>
+            )}
+            {nr.error && !nr.outputs?.output && (
+              <p className="text-[10px] text-[var(--wf-text-muted)] line-clamp-2 break-all flex-1">
+                ↳ {String(nr.error)}
+              </p>
+            )}
+            <button
+              type="button"
+              title={`Copy ${nr.outputs?.output ? "output" : ""}${nr.error ? (nr.outputs?.output ? " / error" : "error") : ""}`}
+              aria-label="Copy output or error"
+              className="shrink-0 text-[var(--wf-text-faint)] hover:text-[var(--wf-text-primary)] transition-colors p-0.5 rounded-md"
+              onClick={() => {
+                let outText = "";
+                if (
+                  nr.outputs?.output &&
+                  typeof nr.outputs.output === "string" &&
+                  nr.outputs.output.startsWith("data:")
+                ) {
+                  outText = nr.outputs.output;
+                } else if (nr.outputs?.output) {
+                  try {
+                    outText = typeof nr.outputs.output === "string"
+                      ? nr.outputs.output
+                      : JSON.stringify(nr.outputs.output, null, 2);
+                  } catch {
+                    outText = String(nr.outputs.output);
+                  }
+                }
+                // If there is an error but no output, or both error and output, append/join both
+                if (nr.error) {
+                  if (outText) {
+                    outText = outText + "\n\nError:\n" + nr.error;
+                  } else {
+                    outText = nr.error;
+                  }
+                }
+                if (outText) {
+                  navigator.clipboard.writeText(outText);
+                }
+              }}
+            >
+              {/* Inline SVG clipboard icon */}
+              <svg viewBox="0 0 16 16" width={12} height={12} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3.8" y="3.8" width="9" height="9" rx="2" />
+                <path d="M5 2.5V3.2A1.3 1.3 0 0 0 6.3 4.5h3.4A1.3 1.3 0 0 0 11 3.2V2.5" />
+              </svg>
+            </button>
+          </div>
         )}
       </div>
       <span className="text-[10px] text-[var(--wf-text-faint)] shrink-0 mt-0.5">{durationMs(nr)}</span>
@@ -103,7 +153,7 @@ function RunRow({ run, index, total, expanded, onToggle }: {
       <button
         onClick={onToggle}
         className={cn(
-          "flex h-9 w-full items-center gap-3 rounded-lg px-4 bg-[var(--wf-btn-bg)/20] text-sm transition-all hover:cursor-pointer hover:bg-[var(--wf-btn-bg-hover)]",
+          "flex h-9 px-4 w-full items-center gap-3 rounded-lg bg-[var(--wf-btn-bg)/20] text-sm transition-all hover:cursor-pointer hover:bg-[var(--wf-btn-bg-hover)]",
           expanded && "bg-[var(--wf-btn-bg)]"
         )}
       >
@@ -124,7 +174,7 @@ function RunRow({ run, index, total, expanded, onToggle }: {
       {/* Expanded node list */}
       <div
         className={cn(
-          "grid transition-all duration-200 ease-in-out",
+          "grid transition-all pl-3 duration-200 ease-in-out",
           expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         )}
       >
