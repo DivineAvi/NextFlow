@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { ClipboardIcon, Sparkles, X } from "lucide-react";
 import type { NodeProps } from "reactflow";
 import { getToneColor } from "@/ui/workflow-builder/tokens/data-type-colors";
+import { getNodeAccentColors } from "@/ui/workflow-builder/tokens/node-type-colors";
 
 export type BaseNodeTone = "yellow" | "blue" | "green" | "red" | "orange" | "purple" | "pink" | "gray" | "brown" | "black" | "white";
 export type NODE_STATUS = "RUNNING" | "COMPLETED" | "FAILED" | "PENDING";
@@ -40,6 +41,7 @@ export interface BaseNodeProps extends NodeProps, StyleProps {
 
 export const BaseNode = memo(function BaseNode({
   id,
+  type,
   data,
   children,
   preview,
@@ -52,6 +54,7 @@ export const BaseNode = memo(function BaseNode({
   tone = "blue",
 }: BaseNodeProps) {
   const Icon = icon as ComponentType<SVGProps<SVGSVGElement>>;
+  const accent = getNodeAccentColors(type);
   const [label, setLabel] = useState<string>(data.label);
   const [isErrorVisible, setIsErrorVisible] = useState(false);
 
@@ -127,19 +130,23 @@ export const BaseNode = memo(function BaseNode({
       {/* Body */}
       <div
         className={`rounded-[12px] border-2 bg-[var(--wf-bg-node)] text-[var(--wf-text-muted)] flex-1 transition-all duration-300 ${
-          data.status === "RUNNING"
-            ? getToneColor(tone).border + " !border-1 animate-pulse-shadow"
-            : data.status === "COMPLETED"
-              ? getToneColor(tone).border
-              : data.status === "FAILED"
-                ? "border-red-500"
-                : selected
-                  ? getToneColor(tone).border
-                  : "border-[var(--wf-bg-node)]"
+          data.status === "RUNNING" ? "animate-pulse-shadow" : ""
         }`}
         style={
           {
-            "--pulse-shadow-color": getToneColor(tone).pulseRgba,
+            "--pulse-shadow-color": accent.pulseRgba,
+            borderColor:
+              data.status === "FAILED"
+                ? "rgba(239,68,68,0.9)"
+                : data.status === "RUNNING" || selected
+                  ? accent.borderColor
+                  : "var(--wf-bg-node)",
+            boxShadow:
+              data.status === "FAILED"
+                ? "0 0 12px rgba(239,68,68,0.3)"
+                : data.status === "RUNNING"
+                  ? accent.activeShadow
+                  : "none",
           } as React.CSSProperties
         }
       >
