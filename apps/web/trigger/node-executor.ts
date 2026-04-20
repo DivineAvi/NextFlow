@@ -59,13 +59,19 @@ export const nodeExecutorTask = task({
         return { output: inputs.text ?? "" };
 
       case "upload_image_node": {
-        const r = await uploadFileTask.triggerAndWait({ dataUrl: inputs.image_file ?? "" });
+        const r = await uploadFileTask.triggerAndWait({
+          dataUrl: inputs.image_file ?? "",
+          fileName: inputs.image_file_name,
+        });
         if (!r.ok) throw new Error(String(r.error ?? "Upload image task failed"));
         return r.output;
       }
 
       case "upload_video_node": {
-        const r = await uploadFileTask.triggerAndWait({ dataUrl: inputs.video_file ?? "" });
+        const r = await uploadFileTask.triggerAndWait({
+          dataUrl: inputs.video_file ?? "",
+          fileName: inputs.video_file_name,
+        });
         if (!r.ok) throw new Error(String(r.error ?? "Upload video task failed"));
         return r.output;
       }

@@ -13,8 +13,17 @@ export function UploadImageNode(props: NodeProps) {
   const rawUpload = definition.controls?.find((c) => c.id === "image_file");
   const uploadControl = rawUpload?.type === "file_upload" ? (rawUpload as FileUploadControlDef) : null;
 
+  const status: string | undefined = props.data.status;
+  const output: string | undefined = props.data.output;
+
+  const preview = output ? (
+    <img src={output} alt="Uploaded image" className="w-full block object-cover max-h-40" />
+  ) : status === "RUNNING" ? (
+    <div className="h-20 bg-zinc-800 animate-pulse" />
+  ) : null;
+
   return (
-    <BaseNode {...props} Width="220px" icon={ImageIcon} tone="blue">
+    <BaseNode {...props} Width="220px" icon={ImageIcon} tone="blue" preview={preview}>
       {/* Output handle */}
       <div className="relative flex px-4 h-7 w-full items-center justify-end">
         <LabelRenderer htmlFor={imageOutput.id} tone="dark">

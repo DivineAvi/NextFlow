@@ -70,7 +70,8 @@ export function UploadFileRenderer({
         const dataUrl = e.target?.result as string;
         // Store the base64 data URL directly in node data.
         // The actual upload to CDN happens inside the Trigger.dev uploadFileTask at execution time.
-        updateNodeData(nodeId, { [id]: dataUrl });
+        // Also store original filename so the server preserves the correct extension.
+        updateNodeData(nodeId, { [id]: dataUrl, [`${id}_name`]: selected.name });
         setFileName(selected.name);
         setPreview(fileType === "image" ? dataUrl : null);
       };

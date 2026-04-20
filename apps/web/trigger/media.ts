@@ -67,7 +67,7 @@ async function findFfmpeg(): Promise<string> {
 export const uploadFileTask = task({
   id: "upload-file-task",
   maxDuration: 120,
-  run: async ({ dataUrl }: { dataUrl: string }): Promise<{ output: string }> => {
+  run: async ({ dataUrl, fileName }: { dataUrl: string; fileName?: string }): Promise<{ output: string }> => {
     if (!dataUrl) throw new Error("No file selected — add a file to the node before running");
 
     // Already a remote CDN URL (saved workflow) — pass through.
@@ -78,13 +78,29 @@ export const uploadFileTask = task({
     const commaIdx = dataUrl.indexOf(",");
     if (commaIdx === -1) throw new Error("Invalid data URL format");
 
-    const header = dataUrl.slice(0, commaIdx);
     const base64Data = dataUrl.slice(commaIdx + 1);
-    const mimeType = header.match(/data:([^;]+)/)?.[1] ?? "application/octet-stream";
-    const ext = mimeType.split("/")[1]?.split("+")[0] ?? "bin";
+
+    // Prefer original filename to preserve format (e.g. .mov, .m4v).
+    // Fall back to deriving extension from the MIME type in the data URL header.
+    let tmpFileName: string;
+    if (fileName) {
+      tmpFileName = fileName;
+    } else {
+      const header = dataUrl.slice(0, commaIdx);
+      const mimeType = header.match(/data:([^;]+)/)?.[1] ?? "application/octet-stream";
+      const MIME_TO_EXT: Record<string, string> = {
+        "video/quicktime": "mov",
+        "video/x-m4v": "m4v",
+        "video/x-msvideo": "avi",
+        "image/jpeg": "jpg",
+        "image/svg+xml": "svg",
+      };
+      const ext = MIME_TO_EXT[mimeType] ?? mimeType.split("/")[1]?.split("+")[0] ?? "bin";
+      tmpFileName = `file.${ext}`;
+    }
 
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "nextflow-upload-"));
-    const tmpPath = path.join(tmpDir, `file.${ext}`);
+    const tmpPath = path.join(tmpDir, tmpFileName);
 
     try {
       await fs.writeFile(tmpPath, Buffer.from(base64Data, "base64"));
