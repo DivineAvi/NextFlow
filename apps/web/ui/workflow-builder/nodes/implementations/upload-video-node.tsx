@@ -13,8 +13,23 @@ export function UploadVideoNode(props: NodeProps) {
   const rawControl = definition.controls?.find((c) => c.id === "video_file");
   const videoControl = rawControl?.type === "file_upload" ? (rawControl as FileUploadControlDef) : null;
 
+  const videoUrl: string | undefined =
+    props.data.video_file && !props.data.video_file.startsWith("data:")
+      ? props.data.video_file
+      : undefined;
+
+  const preview = videoUrl ? (
+    <video
+      src={videoUrl}
+      className="w-full block max-h-40 bg-black"
+      controls={false}
+      muted
+      preload="metadata"
+    />
+  ) : null;
+
   return (
-    <BaseNode {...props} Width="220px" icon={VideoIcon} tone="pink">
+    <BaseNode {...props} Width="220px" icon={VideoIcon} tone="pink" preview={preview}>
       {/* Output handle */}
       <div className="relative flex px-4 h-7 w-full items-center justify-end">
         <LabelRenderer htmlFor={videoOutput.id} tone="dark">

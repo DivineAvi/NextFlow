@@ -14,10 +14,12 @@ export function UploadImageNode(props: NodeProps) {
   const uploadControl = rawUpload?.type === "file_upload" ? (rawUpload as FileUploadControlDef) : null;
 
   const status: string | undefined = props.data.status;
-  const output: string | undefined = props.data.output;
+  // Use execution output if available, otherwise the uploaded CDN URL
+  const previewUrl: string | undefined =
+    props.data.output || (props.data.image_file && !props.data.image_file.startsWith("data:") ? props.data.image_file : undefined);
 
-  const preview = output ? (
-    <img src={output} alt="Uploaded image" className="w-full block object-cover max-h-40" />
+  const preview = previewUrl ? (
+    <img src={previewUrl} alt="Uploaded image" className="w-full block object-cover max-h-40" />
   ) : status === "RUNNING" ? (
     <div className="h-20 bg-zinc-800 animate-pulse" />
   ) : null;
