@@ -20,7 +20,8 @@ export function WorkflowSearch({ onSearch }: Props) {
           onSearch(e.target.value);
         }}
         placeholder="Search workflows..."
-        className="h-8 w-52 rounded-lg bg-zinc-900 border border-zinc-800 pl-8 pr-3 text-xs text-zinc-300 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+        className="h-8 w-20 sm:w-52 rounded-lg bg-zinc-900 border border-zinc-800 pl-8 pr-3 text-xs text-zinc-300 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+   
       />
     </div>
   );
