@@ -3,31 +3,39 @@ import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-async function imagePartFromSource(source: string): Promise<Part | null> {
-  if (!source) return null;
+const ALLOWED_IMAGE_MIMES = new Set([
+  "image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif",
+]);
 
-  // base64 data URI: "data:image/jpeg;base64,..."
+function cleanMimeType(raw: string | null, fallback = "image/jpeg"): string {
+  // Strip charset/params: "image/jpeg; charset=utf-8" → "image/jpeg"
+  const clean = (raw ?? "").split(";")[0].trim().toLowerCase();
+  return clean && ALLOWED_IMAGE_MIMES.has(clean) ? clean : fallback;
+}
+
+async function imagePartFromSource(source: string): Promise<Part> {
+  if (!source) throw new Error("Empty image source");
+
+  // base64 data URI
   if (source.startsWith("data:")) {
     const [header, base64Data] = source.split(",");
-    const mimeType = header.split(":")[1]?.split(";")[0] || "image/jpeg";
+    const mimeType = cleanMimeType(header.split(":")[1]?.split(";")[0] ?? null);
     return { inlineData: { data: base64Data, mimeType } };
   }
 
-  // Remote URL — download and convert
+  // Remote URL — download and inline
   if (source.startsWith("http")) {
-    try {
-      const response = await fetch(source);
-      const arrayBuffer = await response.arrayBuffer();
-      const base64Data = Buffer.from(arrayBuffer).toString("base64");
-      const mimeType = response.headers.get("content-type") || "image/jpeg";
-      return { inlineData: { data: base64Data, mimeType } };
-    } catch {
-      console.warn("Failed to fetch image from URL:", source);
-      return null;
+    const response = await fetch(source);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image (${response.status}): ${source}`);
     }
+    const arrayBuffer = await response.arrayBuffer();
+    const base64Data = Buffer.from(arrayBuffer).toString("base64");
+    const mimeType = cleanMimeType(response.headers.get("content-type"));
+    return { inlineData: { data: base64Data, mimeType } };
   }
 
-  return null;
+  throw new Error(`Unsupported image source format: ${source.slice(0, 80)}`);
 }
 
 export const llmNodeTask = task({
@@ -44,11 +52,14 @@ export const llmNodeTask = task({
 
     const userParts: Part[] = [];
 
-    // Images first, then the user text — Gemini requires inlineData parts
-    // to not be followed by another text part in the same content block.
+    // Images first, then text — Gemini requires inlineData before text parts.
     for (const imageSource of payload.imageUrls ?? []) {
-      const imagePart = await imagePartFromSource(imageSource);
-      if (imagePart) userParts.push(imagePart);
+      if (!imageSource) continue;
+      try {
+        userParts.push(await imagePartFromSource(imageSource));
+      } catch (err) {
+        console.warn("Skipping image, failed to load:", err);
+      }
     }
 
     userParts.push({ text: payload.userMessage });

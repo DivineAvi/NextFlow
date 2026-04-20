@@ -17,11 +17,9 @@ export const nodeExecutorTask = task({
     switch (nodeType) {
       case "llm_node": {
         const rawImages = inputs["image_input"];
-        const imageUrls: string[] = Array.isArray(rawImages)
-          ? rawImages.filter(Boolean)
-          : rawImages
-          ? [rawImages]
-          : [];
+        const imageUrls: string[] = (
+          Array.isArray(rawImages) ? rawImages.flat() : rawImages ? [rawImages] : []
+        ).filter((v): v is string => typeof v === "string" && v.length > 0);
 
         const result = await llmNodeTask.triggerAndWait({
           systemPrompt: inputs["system_prompt"] ?? undefined,
