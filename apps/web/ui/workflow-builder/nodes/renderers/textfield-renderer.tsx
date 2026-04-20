@@ -4,6 +4,7 @@ import { inputSurfaceTone, inputTextTone } from "@/ui/tones/tones";
 import { Tone } from "./tone";
 import { useCanvasStore } from "@/store/canvas-store";
 import { useState, useEffect } from "react";
+import { useIsHandleConnected } from "./use-handle-connected";
 
 interface TextFieldRendererProps {
   id: string;
@@ -21,6 +22,7 @@ export function TextFieldRenderer({
   placeholder,
 }: TextFieldRendererProps) {
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
+  const connected = useIsHandleConnected(nodeId, id);
   const [localValue, setLocalValue] = useState(initialValue || "");
 
   useEffect(() => {
@@ -38,7 +40,8 @@ export function TextFieldRenderer({
       onChange={(e) => setLocalValue(e.target.value)}
       onBlur={handleBlur}
       placeholder={placeholder}
-      className={`nodrag nopan p-1 h-5 w-full min-w-0 border-transparent ${inputSurfaceTone[tone]} ${inputTextTone[tone]} border-1 rounded-sm text-[11px] shadow-[0_0.5px_0px_0_rgba(255,255,255,0.10)] outline-none select-none transition-all duration-300`}
+      disabled={connected}
+      className={`nodrag nopan p-1 h-5 w-full min-w-0 border-transparent ${inputSurfaceTone[tone]} ${inputTextTone[tone]} border-1 rounded-sm text-[11px] shadow-[0_0.5px_0px_0_rgba(255,255,255,0.10)] outline-none select-none transition-all duration-300 ${connected ? "opacity-40 cursor-not-allowed" : ""}`}
     />
   );
 }

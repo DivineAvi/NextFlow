@@ -4,6 +4,7 @@ import { inputSurfaceTone, inputTextTone } from "@/ui/tones/tones";
 import { Tone } from "./tone";
 import { useCanvasStore } from "@/store/canvas-store";
 import { useEffect, useState } from "react";
+import { useIsHandleConnected } from "./use-handle-connected";
 
 interface TextareaRendererProps {
   id: string;
@@ -23,6 +24,7 @@ export function TextareaRenderer({
 }: TextareaRendererProps) {
   
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
+  const connected = useIsHandleConnected(nodeId, id);
   const [localValue, setLocalValue] = useState(initialValue);
   // Sync local state if external data changes (e.g., Undo/Redo)
   useEffect(() => {
@@ -42,7 +44,8 @@ export function TextareaRenderer({
       onChange={(e) => setLocalValue(e.target.value)}
       onBlur={handleBlur}
       placeholder={placeholder}
-      className={`nodrag nopan p-1 flex-1 w-full min-h-[90px] border-transparent ${inputSurfaceTone[tone]} ${inputTextTone[tone]} border-1 rounded-sm text-[11px] shadow-[0_0.5px_0px_0_rgba(255,255,255,0.10)] outline-none resize-y`}
+      disabled={connected}
+      className={`nodrag nopan p-1 flex-1 w-full min-h-[90px] border-transparent ${inputSurfaceTone[tone]} ${inputTextTone[tone]} border-1 rounded-sm text-[11px] shadow-[0_0.5px_0px_0_rgba(255,255,255,0.10)] outline-none resize-y transition-opacity ${connected ? "opacity-40 cursor-not-allowed" : ""}`}
     />
   );
 }

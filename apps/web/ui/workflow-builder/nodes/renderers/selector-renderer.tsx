@@ -7,6 +7,7 @@ import { ChevronDown, Check } from "lucide-react";
 import { SelectControlDef } from "@nextflow/core";
 import { useCanvasStore } from "@/store/canvas-store";
 import { Tone } from "./tone";
+import { useIsHandleConnected } from "./use-handle-connected";
 
 interface SelectorProps {
   id: string;
@@ -26,6 +27,7 @@ export function SelectorRenderer({
   placeholder,
 }: SelectorProps) {
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
+  const connected = useIsHandleConnected(nodeId, id);
   const [isOpen, setIsOpen] = useState(false);
   const [internalValue, setInternalValue] = useState(initialValue);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,8 +48,9 @@ export function SelectorRenderer({
     <div ref={containerRef} className="relative w-full nodrag nopan">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`
+        disabled={connected}
+        onClick={() => !connected && setIsOpen(!isOpen)}
+        className={`${connected ? "opacity-40 cursor-not-allowed" : ""}
             flex items-center justify-between
             w-full px-1 rounded-sm border transition-all duration-200
             text-[11px] font-medium outline-none

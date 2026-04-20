@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChevronRight, CheckCircle2, XCircle, Loader2, Clock, AlertTriangle, RefreshCw } from "lucide-react";
+import {
+  CheckCircle2, XCircle, Loader2, Clock, AlertTriangle,
+  RefreshCw, ChevronRight,
+} from "lucide-react";
 import { cn } from "@nextflow/utils";
 import { useCanvasStore } from "@/store/canvas-store";
 import { useShallow } from "zustand/react/shallow";
@@ -38,30 +41,118 @@ function durationMs(run: { startedAt?: string; endedAt?: string }): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const cls = {
-    COMPLETED: "text-green-400 bg-green-500/10 border-green-500/30",
-    FAILED:    "text-red-400 bg-red-500/10 border-red-500/30",
-    RUNNING:   "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-    PARTIAL:   "text-orange-400 bg-orange-500/10 border-orange-500/30",
-    PENDING:   "text-zinc-400 bg-zinc-800 border-zinc-700",
-  }[status] ?? "text-zinc-400 bg-zinc-800 border-zinc-700";
+function statusColor(status: string) {
+  return {
+    COMPLETED: "text-green-400",
+    FAILED:    "text-red-400",
+    RUNNING:   "text-yellow-400",
+    PARTIAL:   "text-orange-400",
+    PENDING:   "text-zinc-500",
+  }[status] ?? "text-zinc-500";
+}
 
+function StatusIcon({ status, className }: { status: string; className?: string }) {
+  const cls = cn("size-3.5 shrink-0", statusColor(status), className);
+  switch (status) {
+    case "COMPLETED": return <CheckCircle2 className={cls} />;
+    case "FAILED":    return <XCircle className={cls} />;
+    case "RUNNING":   return <Loader2 className={cn(cls, "animate-spin")} />;
+    case "PARTIAL":   return <AlertTriangle className={cls} />;
+    default:          return <Clock className={cls} />;
+  }
+}
+
+function NodeRunRow({ nr }: { nr: NodeRun }) {
   return (
-    <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border", cls)}>
-      {status}
-    </span>
+    <div className="flex items-start gap-2.5 px-4 py-1.5 group">
+      <div className="mt-0.5">
+        <StatusIcon status={nr.status} className="size-3" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-[var(--wf-text-primary)] truncate font-medium">
+          {nr.nodeLabel || nr.nodeType || nr.nodeId}
+        </p>
+        {nr.error && (
+          <p className="text-[10px] text-red-400 truncate mt-0.5">✕ {nr.error}</p>
+        )}
+        {nr.outputs?.output && (
+          <p className="text-[10px] text-[var(--wf-text-muted)] line-clamp-2 break-all mt-0.5">
+            ↳ {
+              typeof nr.outputs.output === "string" && nr.outputs.output.startsWith("data:")
+                ? "[image data]"
+                : String(nr.outputs.output)
+            }
+          </p>
+        )}
+      </div>
+      <span className="text-[10px] text-[var(--wf-text-faint)] shrink-0 mt-0.5">{durationMs(nr)}</span>
+    </div>
   );
 }
 
-function StatusIcon({ status }: { status: string }) {
-  switch (status) {
-    case "COMPLETED": return <CheckCircle2 className="size-3.5 text-green-400 shrink-0" />;
-    case "FAILED":    return <XCircle      className="size-3.5 text-red-400 shrink-0" />;
-    case "RUNNING":   return <Loader2      className="size-3.5 text-yellow-400 animate-spin shrink-0" />;
-    case "PARTIAL":   return <AlertTriangle className="size-3.5 text-orange-400 shrink-0" />;
-    default:          return <Clock        className="size-3.5 text-zinc-500 shrink-0" />;
-  }
+function RunRow({ run, index, total, expanded, onToggle }: {
+  run: WorkflowRun;
+  index: number;
+  total: number;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div>
+      {/* Run header row — styled like a sidebar item */}
+      <button
+        onClick={onToggle}
+        className={cn(
+          "flex h-9 w-full items-center gap-3 rounded-lg px-4 text-sm transition-all hover:cursor-pointer hover:bg-[var(--wf-btn-bg)]",
+          expanded && "bg-[var(--wf-btn-bg)]"
+        )}
+      >
+        <StatusIcon status={run.status} />
+        <span className="flex-1 text-left text-sm font-medium text-[var(--wf-text-primary)] truncate">
+          Run #{total - index}
+        </span>
+        <span className="text-[10px] text-[var(--wf-text-muted)] shrink-0">{durationMs(run)}</span>
+        <ChevronRight
+          size={12}
+          className={cn(
+            "text-[var(--wf-text-faint)] shrink-0 transition-transform duration-200",
+            expanded && "rotate-90"
+          )}
+        />
+      </button>
+
+      {/* Expanded node list */}
+      <div
+        className={cn(
+          "grid transition-all duration-200 ease-in-out",
+          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+      >
+        <div className="overflow-hidden">
+          {/* Timestamp row */}
+          <div className="flex items-center gap-2 px-4 py-1">
+            <span className="text-[10px] text-[var(--wf-text-faint)]">
+              {new Date(run.createdAt).toLocaleString()}
+            </span>
+            <span className="text-[10px] text-[var(--wf-text-faint)]">·</span>
+            <span className="text-[10px] text-[var(--wf-text-faint)] capitalize">{run.scope?.toLowerCase()}</span>
+          </div>
+
+          {run.nodeRuns.length === 0 ? (
+            <p className="px-4 py-1.5 text-[11px] text-[var(--wf-text-muted)]">No nodes executed yet.</p>
+          ) : (
+            <div className="flex flex-col pb-1">
+              {run.nodeRuns.map((nr) => (
+                <NodeRunRow key={nr.id} nr={nr} />
+              ))}
+            </div>
+          )}
+
+          <div className="mx-4 mt-1 mb-2 border-t border-[var(--wf-border)]" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function HistorySidebar() {
@@ -82,12 +173,9 @@ export function HistorySidebar() {
       if (!res.ok) return;
       const data = await res.json();
       setRuns(data);
-    } catch {
-      // silently fail
-    }
+    } catch {}
   }, [workflowId]);
 
-  // Reload whenever the active workflow changes
   useEffect(() => {
     setRuns([]);
     if (!workflowId) return;
@@ -95,22 +183,20 @@ export function HistorySidebar() {
     fetchRuns().finally(() => setIsLoading(false));
   }, [workflowId]);
 
-  // Poll every 3 seconds while any run is active
   useEffect(() => {
     const hasActiveRun = runs.some((r) => r.status === "PENDING" || r.status === "RUNNING");
     if (!hasActiveRun) return;
-
     const interval = setInterval(fetchRuns, 3000);
     return () => clearInterval(interval);
   }, [runs, fetchRuns]);
 
   return (
     <aside className={cn(
-      "flex h-screen shrink-0 flex-col border-l border-[var(--wf-border)] bg-[var(--wf-bg-sidebar)] transition-all duration-300 overflow-hidden",
-      historySidebarOpen ? "w-72" : "w-0 border-l-0"
+      "flex h-screen shrink-0 flex-col border-l border-[var(--wf-border)] bg-[var(--wf-bg-sidebar)] transition-all duration-300",
+      historySidebarOpen ? "w-64" : "w-0 border-l-0"
     )}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--wf-border)] px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--wf-border)] shrink-0">
         <h2 className="text-sm font-semibold text-[var(--wf-text-primary)]">History</h2>
         <button
           onClick={() => { setIsLoading(true); fetchRuns().finally(() => setIsLoading(false)); }}
@@ -122,86 +208,24 @@ export function HistorySidebar() {
       </div>
 
       {/* Run list */}
-      <div className="flex flex-col gap-1.5 overflow-y-auto p-2">
+      <div className="flex-1 overflow-y-auto min-h-0 p-2">
         {runs.length === 0 ? (
           <p className="text-xs text-[var(--wf-text-muted)] text-center py-6">
-            {isLoading ? "Loading…" : "No runs yet. Click Run to start."}
+            {isLoading ? "Loading…" : "No runs yet."}
           </p>
         ) : (
-          runs.map((run, idx) => (
-            <div
-              key={run.id}
-              className="rounded-lg border border-[var(--wf-border)] bg-[var(--wf-bg-surface)] overflow-hidden"
-            >
-              {/* Run summary row */}
-              <button
-                onClick={() => setExpandedRun(expandedRun === run.id ? null : run.id)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--wf-btn-bg)] transition"
-              >
-                <StatusIcon status={run.status} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-[var(--wf-text-primary)] truncate">
-                    Run #{runs.length - idx}
-                    {run.workflow?.name ? ` · ${run.workflow.name}` : ""}
-                  </p>
-                  <p className="text-[10px] text-[var(--wf-text-muted)] flex gap-1.5">
-                    <span>{new Date(run.createdAt).toLocaleString()}</span>
-                    <span>·</span>
-                    <span>{durationMs(run)}</span>
-                    <span>·</span>
-                    <span className="capitalize">{run.scope?.toLowerCase()}</span>
-                  </p>
-                </div>
-                <StatusBadge status={run.status} />
-                <ChevronRight
-                  size={13}
-                  className={cn("text-[var(--wf-text-faint)] transition-transform shrink-0", expandedRun === run.id && "rotate-90")}
-                />
-              </button>
-
-              {/* Node-level details */}
-              {expandedRun === run.id && (
-                <div className="border-t border-[var(--wf-border)] bg-[var(--wf-bg-input)] px-2 py-1.5 flex flex-col gap-1">
-                  {run.nodeRuns.length === 0 ? (
-                    <p className="text-[10px] text-[var(--wf-text-muted)] px-1">No nodes executed yet.</p>
-                  ) : (
-                    run.nodeRuns.map((nr) => (
-                      <div
-                        key={nr.id}
-                        className="flex flex-col gap-0.5 rounded bg-[var(--wf-bg-surface)] border border-[var(--wf-border)] px-2 py-1.5"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] text-[var(--wf-text-primary)] font-medium truncate flex-1">
-                            {nr.nodeLabel || nr.nodeType || nr.nodeId}
-                          </span>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="text-[9px] text-[var(--wf-text-muted)]">{durationMs(nr)}</span>
-                            <StatusIcon status={nr.status} />
-                          </div>
-                        </div>
-
-                        {nr.error && (
-                          <p className="text-[10px] text-red-400 truncate">
-                            ✕ {nr.error}
-                          </p>
-                        )}
-
-                        {nr.outputs?.output && (
-                          <p className="text-[10px] text-[var(--wf-text-secondary)] line-clamp-2 break-all">
-                            ↳ {
-                              typeof nr.outputs.output === "string" && nr.outputs.output.startsWith("data:")
-                                ? "[image data]"
-                                : String(nr.outputs.output)
-                            }
-                          </p>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          ))
+          <div className="flex flex-col gap-[1px]">
+            {runs.map((run, idx) => (
+              <RunRow
+                key={run.id}
+                run={run}
+                index={idx}
+                total={runs.length}
+                expanded={expandedRun === run.id}
+                onToggle={() => setExpandedRun(expandedRun === run.id ? null : run.id)}
+              />
+            ))}
+          </div>
         )}
       </div>
     </aside>

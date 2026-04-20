@@ -115,7 +115,7 @@ export const BaseNode = memo(function BaseNode({
                 ? "border-red-500"
                 : selected
                   ? getToneColor(tone).border
-                  : "border-[var(--wf-border)]"
+                  : "border-[var(--wf-bg-node)]"
         }`}
         style={
           {

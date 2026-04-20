@@ -31,8 +31,8 @@ export interface HandlerRendererProps {
 function handleTransform(position: Position, scale: number): string {
   const isHorizontal = position === Position.Left || position === Position.Right;
   return isHorizontal
-    ? `translate(0, -50%) scale(${scale})`
-    : `translate(-50%, 0) scale(${scale})`;
+    ? `translate(0, 0%) scale(${scale})`
+    : `translate(0%, 0) scale(${scale})`;
 }
 
 const POSITION_TO_TOOLTIP_SIDE: Record<Position, TooltipSide> = {

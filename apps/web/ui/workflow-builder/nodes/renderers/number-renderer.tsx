@@ -3,6 +3,7 @@
 import { inputSurfaceTone, inputTextTone, type FieldTone } from "@/ui/tones/tones";
 import { useCanvasStore } from "@/store/canvas-store";
 import { useState, useEffect } from "react";
+import { useIsHandleConnected } from "./use-handle-connected";
 
 export type Tone = FieldTone;
 
@@ -22,6 +23,7 @@ export function NumberInputRenderer({
   placeholder,
 }: NumberInputRendererProps) {
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
+  const connected = useIsHandleConnected(nodeId, id);
   const [localValue, setLocalValue] = useState<number | "">(initialValue ?? "");
 
   useEffect(() => {
@@ -55,7 +57,8 @@ export function NumberInputRenderer({
         }
       }}
       placeholder={placeholder}
-      className={`nodrag nopan px-1 flex-1 w-full border-transparent ${inputSurfaceTone[tone]} ${inputTextTone[tone]} border-1 rounded-sm text-[11px] shadow-[0_0.5px_0px_0_rgba(255,255,255,0.10)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+      disabled={connected}
+      className={`nodrag nopan px-1 flex-1 w-full border-transparent ${inputSurfaceTone[tone]} ${inputTextTone[tone]} border-1 rounded-sm text-[11px] shadow-[0_0.5px_0px_0_rgba(255,255,255,0.10)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-opacity ${connected ? "opacity-40 cursor-not-allowed" : ""}`}
     />
   );
 }
