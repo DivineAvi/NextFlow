@@ -21,6 +21,7 @@ export default defineConfig({
   build: {
     extensions: [
       prismaExtension({
+        mode: "legacy",
         schema: "../../packages/core/prisma/schema.prisma",
       }),
       aptGet({ packages: ["ffmpeg"] }),
