@@ -16,6 +16,7 @@ import { Undo2, Redo2, FlaskConical, History, Sun, Moon, Maximize2 } from "lucid
 
 import { CanvasEmptyState } from "./canvas-empty-state";
 import { SelectionToolbar } from "./selection-toolbar";
+import { WorkflowMenuButton } from "./workflow-menu-button";
 import { useCanvasStore } from "@/store/canvas-store";
 import { NODE_TYPES, EDGE_TYPES } from "../type";
 import { THEME_CANVAS } from "../tokens/theme-tokens";
@@ -114,7 +115,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
     pendingNodeType, clearPendingNode,
     setHoveredEdgeId,
     execution,
-    workflowId, workflowName,
+    workflowId,
     setWorkflowId, setWorkflowName,
     pushHistory, undo, redo, canUndo, canRedo,
     setExecutionRunning,
@@ -132,7 +133,6 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
       setHoveredEdgeId: s.setHoveredEdgeId,
       execution: s.execution,
       workflowId: s.workflowId,
-      workflowName: s.workflowName,
       setWorkflowId: s.setWorkflowId,
       setWorkflowName: s.setWorkflowName,
       pushHistory: s.pushHistory,
@@ -344,6 +344,11 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
             border: `1px solid ${THEME_CANVAS[theme].minimapBorder}`,
           }}
         />
+
+        {/* ── Top-left: workflow menu ───────────────────────────────── */}
+        <Panel position="top-left">
+          <WorkflowMenuButton />
+        </Panel>
 
         {/* ── Top-right toolbar: theme + history ───────────────────── */}
         <Panel position="top-right">

@@ -38,11 +38,11 @@ export function UserAuthButton({ isCollapsed = false }: UserAuthButtonProps) {
           </div>
         ) : (
           <Button className=" cursor-pointer flex w-full h-12 justify-between items-center gap-2.5 rounded-md bg-[var(--wf-bg-surface)] hover:bg-[var(--wf-btn-bg)] transition-colors border-none">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--wf-btn-bg)] border border-[var(--wf-border)] text-[10px] font-semibold text-[var(--wf-text-primary)]">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--wf-btn-bg)] border border-[var(--wf-border)] text-[10px]  text-[var(--wf-text-primary)]">
               {email[0]?.toUpperCase() ?? "U"}
             </div>
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[13px] text-[var(--wf-text-primary)] font-semibold leading-tight">{email}</span>
+              <span className="truncate text-[13px] text-[var(--wf-text-primary)] leading-tight">{email}</span>
               <span className="text-[9px] text-[var(--wf-text-faint)] leading-tight flex justify-start">Free</span>
             </div>
             <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">

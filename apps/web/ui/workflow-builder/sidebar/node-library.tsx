@@ -1,6 +1,5 @@
 "use client";
 
-import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@nextflow/ui";
 import { cn } from "@nextflow/utils";
 import { Search } from "lucide-react";
 import { useState } from "react";
@@ -8,27 +7,26 @@ import { useState } from "react";
 import type { SidebarNode } from "@/config/sidebar-nodes";
 import { NodeLibrarySearchDialog } from "./node-library-search-dialog";
 import NodeLibraryItem from "./node-library-item";
+import { useCanvasStore } from "@/store/canvas-store";
 
 interface NodeLibraryProps {
   nodes: SidebarNode[];
-  /** When true, shows a search control that opens the node search dialog. */
   isSearchable: boolean;
   isCollapsed: boolean;
-  onNodeSelect?: (node: SidebarNode) => void;
 }
 
-export function NodeLibrary({
-  isSearchable,
-  nodes,
-  isCollapsed,
-  onNodeSelect,
-}: NodeLibraryProps) {
+export function NodeLibrary({ isSearchable, nodes, isCollapsed }: NodeLibraryProps) {
   const [sectionHidden, setSectionHidden] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const requestAddNode = useCanvasStore((s) => s.requestAddNode);
 
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleSelect = (node: SidebarNode) => {
+    requestAddNode(node.type);
   };
 
   return (
@@ -62,19 +60,21 @@ export function NodeLibrary({
           )}
         </div>
       </div>
+      <div className="flex flex-col gap-1">
 
       {!sectionHidden &&
         nodes.map((node) => {
           return (
-            <NodeLibraryItem key={node.id} node={node} isCollapsed={isCollapsed} onDragStart={onDragStart} />
+            <NodeLibraryItem key={node.id} node={node} isCollapsed={isCollapsed} onDragStart={onDragStart} onClick={handleSelect} />
           )
         })}
+        </div>
 
       <NodeLibrarySearchDialog
         nodes={nodes}
         open={searchOpen}
         onOpenChange={setSearchOpen}
-        onSelect={onNodeSelect}
+        onSelect={handleSelect}
       />
     </>
   );
