@@ -13,8 +13,8 @@ interface SidebarResizeState {
   toggleCollapse: () => void;
 }
 
-export function useSidebarResize(defaultWidth = 260): SidebarResizeState {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+export function useSidebarResize(defaultWidth = 300): SidebarResizeState {
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [width, setWidth] = useState(defaultWidth);
   const [isResizing, setIsResizing] = useState(false);
 
