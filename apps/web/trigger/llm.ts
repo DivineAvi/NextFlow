@@ -42,21 +42,23 @@ export const llmNodeTask = task({
     const modelId = payload.model || "gemini-1.5-flash";
     const model = genAI.getGenerativeModel({ model: modelId });
 
-    const parts: Part[] = [];
+    const userParts: Part[] = [];
 
-    if (payload.systemPrompt?.trim()) {
-      parts.push({ text: `System Instructions:\n${payload.systemPrompt}\n\n` });
-    }
-
-    // Attach images before the user message (better context for the model)
+    // Images first, then the user text — Gemini requires inlineData parts
+    // to not be followed by another text part in the same content block.
     for (const imageSource of payload.imageUrls ?? []) {
       const imagePart = await imagePartFromSource(imageSource);
-      if (imagePart) parts.push(imagePart);
+      if (imagePart) userParts.push(imagePart);
     }
 
-    parts.push({ text: payload.userMessage });
+    userParts.push({ text: payload.userMessage });
 
-    const result = await model.generateContent(parts);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: userParts }],
+      ...(payload.systemPrompt?.trim() && {
+        systemInstruction: { parts: [{ text: payload.systemPrompt }] },
+      }),
+    });
     const responseText = result.response.text();
 
     return { output: responseText };

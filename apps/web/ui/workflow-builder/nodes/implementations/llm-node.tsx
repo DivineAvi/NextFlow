@@ -122,7 +122,7 @@ export function LLMNode(props: NodeProps) {
 
       {/* ── Inline output (shown after execution) ─────────────────────── */}
       {output && (
-        <div className="mx-3 mb-3 rounded-md border border-zinc-700 bg-[#171717] overflow-hidden">
+        <div className=" nodrag nopan mx-3 mb-3 rounded-md border border-zinc-700 bg-[#171717] overflow-hidden max-w-[240px] overflow-y-scroll">
           <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-700">
             <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-semibold">
               Output

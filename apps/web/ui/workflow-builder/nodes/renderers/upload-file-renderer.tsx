@@ -133,13 +133,7 @@ export function UploadFileRenderer({
         </button>
       ) : preview ? (
         <div className="w-full flex flex-col gap-1">
-          <PreviewRenderer
-            id={id}
-            sourceId={nodeId}
-            value={fileName}
-            urls={[preview]}
-            type={previewType}
-          />
+     
           <button
             type="button"
             onClick={handleClear}
