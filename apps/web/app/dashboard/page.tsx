@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { GitBranch } from "lucide-react";
+import Image from "next/image";
 import { WorkflowGrid } from "./_components/workflow-grid";
 import { HeroNewWorkflowButton } from "./_components/hero-new-workflow-button";
 
@@ -38,10 +38,8 @@ export default async function DashboardPage() {
 
           <div className="relative z-10 flex flex-col gap-4 px-10 pt-12">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/30">
-                <GitBranch size={20} className="text-white" strokeWidth={2.5} />
-              </div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Workflow Builder</h1>
+              <Image src="/logo.png" alt="NextFlow" width={40} height={40} className="rounded-xl brightness-0 invert" />
+              <h1 className="text-3xl font-bold text-white tracking-tight">NextFlow</h1>
             </div>
             <p className="max-w-sm text-sm leading-relaxed text-zinc-400">
               Connect every tool and model into complex automated pipelines. Build powerful workflows without writing code.

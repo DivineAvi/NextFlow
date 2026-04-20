@@ -192,31 +192,28 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   runNode: async (nodeId: string) => {
-    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId } = get();
+    const { nodes, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId, applyNodeStatuses } = get();
     if (execution.isRunning) return;
     set((s) => ({ execution: { ...s.execution, isRunning: true } }));
 
-    // Collect nodeId + all its ancestors via backwards BFS
-    const included = new Set<string>();
-    const queue = [nodeId];
-    while (queue.length > 0) {
-      const cur = queue.pop()!;
-      if (included.has(cur)) continue;
-      included.add(cur);
-      for (const e of edges) {
-        if (e.target === cur && !included.has(e.source)) queue.push(e.source);
-      }
-    }
-    const subNodes = nodes.filter((n) => included.has(n.id));
-    const subEdges = edges.filter((e) => included.has(e.source) && included.has(e.target));
+    const node = nodes.find((n) => n.id === nodeId);
+    if (!node) { setExecutionIdle(); return; }
 
     try {
       const res = await fetch("/api/execute-workflow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workflowId, nodes: subNodes, edges: subEdges, scope: "SINGLE" }),
+        body: JSON.stringify({ workflowId, nodes: [node], edges: [], scope: "SINGLE" }),
       });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Run failed"); }
+      if (!res.ok) {
+        const err = await res.json();
+        const msg = (err.details as string[] | undefined)
+          ?.map((d) => d.replace(/^Node "[^"]+": /, ""))
+          .join("; ") ?? err.error ?? "Validation failed";
+        applyNodeStatuses({ [nodeId]: { status: "FAILED", error: msg } });
+        setExecutionIdle();
+        return;
+      }
       const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
       if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
@@ -224,7 +221,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   runSelected: async () => {
-    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId } = get();
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId, applyNodeStatuses } = get();
     if (execution.isRunning) return;
     set((s) => ({ execution: { ...s.execution, isRunning: true } }));
     const selectedNodes = nodes.filter((n) => n.selected);
@@ -238,7 +235,27 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workflowId, nodes: selectedNodes, edges: selectedEdges, scope: "SELECTED" }),
       });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Run failed"); }
+      if (!res.ok) {
+        const err = await res.json();
+        const details: string[] = err.details ?? [];
+        // Map each validation error back to its node by matching the label in the message
+        const labelPattern = /^Node "([^"]+)":/;
+        const labelToId = new Map(nodes.map((n) => [n.data?.label ?? n.id, n.id]));
+        const statuses: Record<string, { status: string; error: string }> = {};
+        for (const detail of details) {
+          const match = detail.match(labelPattern);
+          const nid = match ? (labelToId.get(match[1]) ?? null) : null;
+          const msg = detail.replace(labelPattern, "").trim();
+          if (nid) statuses[nid] = { status: "FAILED", error: msg };
+        }
+        // Fall back: mark all selected nodes failed if we couldn't map specific ones
+        if (Object.keys(statuses).length === 0) {
+          for (const n of selectedNodes) statuses[n.id] = { status: "FAILED", error: err.error ?? "Validation failed" };
+        }
+        applyNodeStatuses(statuses);
+        setExecutionIdle();
+        return;
+      }
       const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
       if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
