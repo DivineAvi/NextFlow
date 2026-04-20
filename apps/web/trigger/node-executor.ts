@@ -1,6 +1,6 @@
 import { task } from "@trigger.dev/sdk/v3";
 import { llmNodeTask } from "./llm";
-import { cropImageTask, extractFrameTask, uploadFileTask } from "./media";
+import { cropImageTask, extractFrameTask } from "./media";
 
 export interface NodeExecutorPayload {
   nodeId: string;
@@ -59,21 +59,15 @@ export const nodeExecutorTask = task({
         return { output: inputs.text ?? "" };
 
       case "upload_image_node": {
-        const r = await uploadFileTask.triggerAndWait({
-          dataUrl: inputs.image_file ?? "",
-          fileName: inputs.image_file_name,
-        });
-        if (!r.ok) throw new Error(String(r.error ?? "Upload image task failed"));
-        return r.output;
+        const url = inputs.image_file ?? "";
+        if (!url) throw new Error("No image uploaded — add an image to the node before running");
+        return { output: url };
       }
 
       case "upload_video_node": {
-        const r = await uploadFileTask.triggerAndWait({
-          dataUrl: inputs.video_file ?? "",
-          fileName: inputs.video_file_name,
-        });
-        if (!r.ok) throw new Error(String(r.error ?? "Upload video task failed"));
-        return r.output;
+        const url = inputs.video_file ?? "";
+        if (!url) throw new Error("No video uploaded — add a video to the node before running");
+        return { output: url };
       }
 
       default:

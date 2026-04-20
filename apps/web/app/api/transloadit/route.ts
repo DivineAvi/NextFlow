@@ -29,9 +29,13 @@ export async function GET(request: Request) {
   // Expires 1 hour from now — ISO 8601 as used by the Transloadit Node.js SDK
   const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
+  // Always use raw storage — no processing templates.
+  // Media processing (crop, frame extract) happens server-side in Trigger.dev tasks.
   const params = JSON.stringify({
     auth: { key: authKey, expires },
-    ...(templateId ? { template_id: templateId } : { steps: {} }),
+    steps: {
+      ":original": { robot: "/upload/handle" },
+    },
   });
 
   const signature =
