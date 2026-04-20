@@ -21,13 +21,20 @@ export function CropImageNode(props: NodeProps) {
   const wCtrl = getNum("width");
   const hCtrl = getNum("height");
 
+  const status: string | undefined = props.data.status;
   const output: string | undefined = props.data.output;
-  const isImage = output?.startsWith("data:image") || output?.startsWith("http");
+  const hasImage = !!output;
+
+  const preview = hasImage ? (
+    <img src={output} alt="Cropped output" className="w-full block object-cover max-h-40" />
+  ) : status === "RUNNING" ? (
+    <div className="h-20 bg-zinc-800 animate-pulse" />
+  ) : null;
 
   return (
-    <BaseNode {...props} Width="220px" tone="blue" icon={Crop}>
+    <BaseNode {...props} Width="220px" tone="blue" icon={Crop} preview={preview}>
       {/* Input & output handles */}
-      <div className="relative flex px-4 h-7 w-full items-center justify-between">
+      <div className="relative flex px-4 h-7 w-full items-center justify-between mt-1">
         <div className="flex items-center gap-2">
           <HandlerRenderer
             label={imageInput.label}
@@ -55,7 +62,7 @@ export function CropImageNode(props: NodeProps) {
       </div>
 
       {/* 2×2 grid of crop params */}
-      <div className="flex flex-col px-3 gap-2 mt-1 pb-1">
+      <div className="flex flex-col px-3 gap-2 mt-1">
         <div className="flex gap-2">
           {xCtrl && (
             <div className="flex flex-col gap-1 w-1/2">
@@ -85,17 +92,6 @@ export function CropImageNode(props: NodeProps) {
           )}
         </div>
       </div>
-
-      {/* Output image preview */}
-      {output && isImage && (
-        <div className="mx-3 mb-3">
-          <img
-            src={output}
-            alt="Cropped output"
-            className="w-full rounded-md border border-zinc-700 object-contain max-h-32"
-          />
-        </div>
-      )}
     </BaseNode>
   );
 }

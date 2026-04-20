@@ -18,12 +18,9 @@ export const LLMNodeDefinition: NodeDefinition = NodeDefinitionSchema.parse({
       type: 'select',
       id: 'model',
       label: 'Model',
-      defaultValue: 'gemini-1.5-flash',
+      defaultValue: 'gemini-2.5-flash',
       options: [
-        { label: 'Gemini 1.5 Flash',   value: 'gemini-1.5-flash' },
-        { label: 'Gemini 1.5 Pro',     value: 'gemini-1.5-pro' },
-        { label: 'Gemini 2.0 Flash',   value: 'gemini-2.0-flash' },
-        { label: 'Gemini 2.0 Pro Exp', value: 'gemini-2.0-pro-exp' },
+        { label: 'Gemini 2.5 Flash',   value: 'gemini-2.5-flash' },
       ],
     },
     {

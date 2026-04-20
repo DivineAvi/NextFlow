@@ -22,10 +22,40 @@ import { useConnectionHandler } from "./use-connection-handler";
 import { MapEdgeColors } from "./utils";
 import { createSampleWorkflow } from "@/config/sample-workflow";
 
-// ---------------------------------------------------------------------------
-// Polling interval for run status (ms)
-// ---------------------------------------------------------------------------
-const POLL_INTERVAL = 2500;
+// SSE from Trigger.dev metadata — drives instant RUNNING state updates.
+// Does NOT own setExecutionIdle; the DB poller below is the authoritative source.
+function useWorkflowRunRealtime() {
+  const { execution, applyNodeStatuses } = useCanvasStore(
+    useShallow((s) => ({
+      execution: s.execution,
+      applyNodeStatuses: s.applyNodeStatuses,
+    }))
+  );
+
+  useEffect(() => {
+    if (!execution.isRunning || !execution.triggerRunId) return;
+
+    const source = new EventSource(`/api/realtime/${execution.triggerRunId}`);
+
+    source.onmessage = (event) => {
+      try {
+        const { nodeStatuses } = JSON.parse(event.data);
+        if (nodeStatuses) applyNodeStatuses(nodeStatuses);
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    // On error just drop the SSE connection — DB poller takes over.
+    source.onerror = () => source.close();
+
+    return () => source.close();
+  }, [execution.isRunning, execution.triggerRunId]);
+}
+
+// DB polling — authoritative source for outputs and terminal state.
+// Polls every 2 s; sets execution idle when the workflow reaches a terminal status.
+const POLL_INTERVAL = 2000;
 
 function useWorkflowRunPoller() {
   const { execution, applyNodeStatuses, setExecutionIdle } = useCanvasStore(
@@ -55,10 +85,9 @@ function useWorkflowRunPoller() {
           };
         }
 
-        applyNodeStatuses(statuses);
+        if (Object.keys(statuses).length > 0) applyNodeStatuses(statuses);
 
-        const terminal = ["COMPLETED", "FAILED", "PARTIAL"].includes(run.status);
-        if (terminal) {
+        if (["COMPLETED", "FAILED", "PARTIAL"].includes(run.status)) {
           setExecutionIdle();
           clearInterval(interval);
         }
@@ -121,7 +150,8 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
 
   const { onConnect } = useConnectionHandler();
 
-  // Start polling when a run is active
+  // SSE for instant RUNNING updates; DB poll for reliable output delivery
+  useWorkflowRunRealtime();
   useWorkflowRunPoller();
 
   // ── Sidebar "Add to Canvas" bridge ──────────────────────────────────
@@ -210,13 +240,13 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
         throw new Error(err.error || "Run failed");
       }
 
-      const { runId, workflowId: newWorkflowId } = await res.json();
+      const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
 
       if (newWorkflowId && newWorkflowId !== workflowId) {
         setWorkflowId(newWorkflowId);
       }
 
-      setExecutionRunning(runId);
+      setExecutionRunning(runId, triggerRunId);
     } catch (e: any) {
       setRunError(e.message);
     }

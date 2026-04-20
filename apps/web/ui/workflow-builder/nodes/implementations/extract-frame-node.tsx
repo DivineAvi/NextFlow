@@ -14,13 +14,20 @@ export function ExtractFrameNode(props: NodeProps) {
   const rawTimestamp = definition.controls?.find((c) => c.id === "timestamp");
   const timestampCtrl = rawTimestamp?.type === "number" ? (rawTimestamp as NumberControlDef) : null;
 
+  const status: string | undefined = props.data.status;
   const output: string | undefined = props.data.output;
-  const isImage = output?.startsWith("data:image") || output?.startsWith("http");
+  const hasImage = !!output;
+
+  const preview = hasImage ? (
+    <img src={output} alt="Extracted frame" className="w-full block object-cover max-h-40" />
+  ) : status === "RUNNING" ? (
+    <div className="h-20 bg-zinc-800 animate-pulse" />
+  ) : null;
 
   return (
-    <BaseNode {...props} Width="220px" tone="pink" icon={Film}>
+    <BaseNode {...props} Width="220px" tone="pink" icon={Film} preview={preview}>
       {/* Handles row */}
-      <div className="relative flex px-4 h-7 w-full items-center justify-between">
+      <div className="relative flex px-4 h-7 w-full items-center justify-between mt-1">
         <div className="flex items-center gap-2">
           <HandlerRenderer
             label={videoInput.label}
@@ -48,7 +55,7 @@ export function ExtractFrameNode(props: NodeProps) {
       </div>
 
       {/* Timestamp control */}
-      <div className="px-3 pb-2 mt-1">
+      <div className="px-3 mt-1">
         {timestampCtrl && (
           <div className="flex flex-col gap-1">
             <LabelRenderer tone="dark">{timestampCtrl.label}</LabelRenderer>
@@ -62,17 +69,6 @@ export function ExtractFrameNode(props: NodeProps) {
           </div>
         )}
       </div>
-
-      {/* Extracted frame preview */}
-      {output && isImage && (
-        <div className="mx-3 mb-3">
-          <img
-            src={output}
-            alt="Extracted frame"
-            className="w-full rounded-md border border-zinc-700 object-contain max-h-32"
-          />
-        </div>
-      )}
     </BaseNode>
   );
 }

@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     });
 
     // Fire-and-forget — orchestrator runs inside Trigger.dev
-    await workflowOrchestrator.trigger({
+    const handle = await workflowOrchestrator.trigger({
       workflowRunId: run.id,
       nodes,
       edges,
@@ -80,6 +80,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       runId: run.id,
+      triggerRunId: handle.id,
       workflowId,
       status: run.status,
     });

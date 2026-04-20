@@ -82,6 +82,7 @@ interface StyleProps {
 
 export interface BaseNodeProps extends NodeProps, StyleProps {
   children?: React.ReactNode;
+  preview?: React.ReactNode;
   icon?: LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
   className?: string;
   style?: React.CSSProperties;
@@ -100,6 +101,7 @@ export interface BaseNodeProps extends NodeProps, StyleProps {
 export const BaseNode = memo(function BaseNode({
   data,
   children,
+  preview,
   selected,
   icon,
   Width,
@@ -183,6 +185,11 @@ export const BaseNode = memo(function BaseNode({
           } as React.CSSProperties
         }
       >
+        {preview && (
+          <div className="overflow-hidden rounded-t-[10px] border-b border-zinc-700/40">
+            {preview}
+          </div>
+        )}
         <div className="flex flex-col flex-1 pb-4">{children}</div>
       </div>
     </div>

@@ -18,12 +18,7 @@ interface HistoryEntry {
 interface ExecutionState {
   isRunning: boolean;
   runId: string | null;
-  nodeStatuses: Record<string, { status: string; output?: any; error?: string }>;
-}
-
-interface WorkflowExecutionState {
-  isRunning: boolean;
-  runId: string | null;
+  triggerRunId: string | null;
   nodeStatuses: Record<string, { status: string; output?: any; error?: string }>;
 }
 
@@ -33,7 +28,6 @@ interface CanvasStore {
 
   workflowId: string | null;
   workflowName: string;
-  workflow_execution: WorkflowExecutionState;
 
   pendingNodeType: string | null;
   hoveredEdgeId: string | null;
@@ -58,7 +52,7 @@ interface CanvasStore {
   setWorkflowId: (id: string | null) => void;
   setWorkflowName: (name: string) => void;
 
-  setExecutionRunning: (runId: string) => void;
+  setExecutionRunning: (runId: string, triggerRunId: string) => void;
   setExecutionIdle: () => void;
   applyNodeStatuses: (statuses: Record<string, { status: string; output?: any; error?: string }>) => void;
 
@@ -76,16 +70,12 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   edges: [],
   workflowId: null,
   workflowName: "Untitled Workflow",
-  workflow_execution: {
-    isRunning: false,
-    runId: null,
-    nodeStatuses: {},
-  },
   pendingNodeType: null,
   hoveredEdgeId: null,
   execution: {
     isRunning: false,
     runId: null,
+    triggerRunId: null,
     nodeStatuses: {},
   },
   history: [],
@@ -122,20 +112,20 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   setWorkflowId: (id) => set({ workflowId: id }),
   setWorkflowName: (name) => set({ workflowName: name }),
 
-  setExecutionRunning: (runId) =>
+  setExecutionRunning: (runId, triggerRunId) =>
     set((state) => ({
       execution: {
         ...state.execution,
         isRunning: true,
         runId,
+        triggerRunId,
         nodeStatuses: Object.fromEntries(
-          state.nodes.map((n) => [n.id, { status: "RUNNING" }])
+          state.nodes.map((n) => [n.id, { status: "PENDING" }])
         ),
       },
-      // Clear stale statuses + errors from nodes
       nodes: state.nodes.map((n) => ({
         ...n,
-        data: { ...n.data, status: "RUNNING", error: undefined, output: undefined },
+        data: { ...n.data, status: "PENDING", error: undefined, output: undefined },
       })),
     })),
 
@@ -180,11 +170,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         const err = await res.json();
         throw new Error(err.error || "Run failed");
       }
-      const { runId, workflowId: newWorkflowId } = await res.json();
+      const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
       if (newWorkflowId && newWorkflowId !== workflowId) {
         setWorkflowId(newWorkflowId);
       }
-      setExecutionRunning(runId);
+      setExecutionRunning(runId, triggerRunId);
     } catch (e: any) {
       console.error("runWorkflow error:", e.message);
     }
