@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { GitBranch, LayoutDashboard, Workflow } from "lucide-react";
+import { LayoutDashboard, Workflow } from "lucide-react";
 import { cn } from "@nextflow/utils";
 
 const NAV_ITEMS = [
@@ -20,10 +21,7 @@ export function DashboardSidebar() {
     <aside className="flex h-screen w-[240px] shrink-0 flex-col border-r border-zinc-800/60 bg-[#0a0a0a]">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
-          <GitBranch size={14} className="text-white" strokeWidth={2.5} />
-        </div>
-        <span className="text-sm font-semibold text-zinc-100 tracking-tight">NextFlow</span>
+        <Image src="/logo.png" alt="NextFlow" width={28} height={28} className="rounded-lg" />
       </div>
 
       {/* Nav */}
