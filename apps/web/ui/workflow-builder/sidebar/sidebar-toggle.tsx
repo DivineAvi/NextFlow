@@ -1,16 +1,27 @@
 import { cn } from "@nextflow/utils";
 import { PanelLeft } from "lucide-react";
+import { useCanvasStore } from "@/store/canvas-store";
 
 interface SidebarToggleProps {
   toggleCollapse: () => void;
 }
 
 export function SidebarToggle({ toggleCollapse }: SidebarToggleProps) {
+  const toggleMobileSidebar = useCanvasStore((s) => s.toggleMobileSidebar);
+
+  const handleClick = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      toggleMobileSidebar();
+    } else {
+      toggleCollapse();
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 p-2">
       <div className="flex h-12 w-full items-center justify-start">
         <button
-          onClick={toggleCollapse}
+          onClick={handleClick}
           aria-label="Toggle sidebar"
           className={cn(
             "hover:cursor-pointer transition-background-color duration-200",

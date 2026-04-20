@@ -298,7 +298,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
 
   return (
     <div
-      className="h-screen w-full bg-[var(--wf-bg-canvas)]"
+      className="h-full w-full bg-[var(--wf-bg-canvas)]"
       onDrop={onDrop}
       onDragOver={onDragOver}
     >
@@ -356,14 +356,14 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
             <button
               onClick={toggleTheme}
               title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] transition"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] shadow-md transition"
             >
               {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             </button>
             <button
               onClick={toggleHistorySidebar}
               title={historySidebarOpen ? "Hide history" : "Show history"}
-              className={`flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition ${
+              className={`flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium shadow-md transition ${
                 historySidebarOpen
                   ? "bg-[var(--wf-btn-bg-hover)] text-[var(--wf-btn-text-hover)]"
                   : "bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)]"
@@ -377,13 +377,13 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
 
         {/* ── Bottom-left toolbar ───────────────────────────────────── */}
         <Panel position="bottom-left">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-3 md:mb-0">
             {/* Undo / Redo */}
             <button
               onClick={undo}
               disabled={!canUndo()}
               title="Undo (Ctrl+Z)"
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] disabled:opacity-30 disabled:cursor-not-allowed shadow-md transition"
             >
               <Undo2 size={14} />
             </button>
@@ -391,7 +391,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
               onClick={redo}
               disabled={!canRedo()}
               title="Redo (Ctrl+Shift+Z)"
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] disabled:opacity-30 disabled:cursor-not-allowed shadow-md transition"
             >
               <Redo2 size={14} />
             </button>
@@ -400,7 +400,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
             <button
               onClick={() => fitView({ padding: 0.1, duration: 300 })}
               title="Fit to window"
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] transition"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--wf-btn-bg)] text-[var(--wf-btn-text)] hover:bg-[var(--wf-btn-bg-hover)] hover:text-[var(--wf-btn-text-hover)] shadow-md transition"
             >
               <Maximize2 size={14} />
             </button>

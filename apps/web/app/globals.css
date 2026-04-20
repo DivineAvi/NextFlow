@@ -70,6 +70,7 @@
   --wf-btn-bg-hover:    #404040;
   --wf-btn-text:        #a1a1aa;
   --wf-btn-text-hover:  #f5f5f5;
+  --wf-logo-invert:     1;
 }
 
 [data-theme="light"] {
@@ -88,6 +89,7 @@
   --wf-btn-bg-hover:    #d4d4d8;
   --wf-btn-text:        #71717a;
   --wf-btn-text-hover:  #18181b;
+  --wf-logo-invert:     0;
 }
 
 body {

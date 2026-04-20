@@ -59,6 +59,9 @@ interface CanvasStore {
   historySidebarOpen: boolean;
   toggleHistorySidebar: () => void;
 
+  mobileSidebarOpen: boolean;
+  toggleMobileSidebar: () => void;
+
   theme: "dark" | "light";
   toggleTheme: () => void;
 
@@ -91,6 +94,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   historyIndex: -1,
   historySidebarOpen: true,
   toggleHistorySidebar: () => set((s) => ({ historySidebarOpen: !s.historySidebarOpen })),
+  mobileSidebarOpen: false,
+  toggleMobileSidebar: () => set((s) => ({ mobileSidebarOpen: !s.mobileSidebarOpen })),
   theme: "dark",
   toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
 

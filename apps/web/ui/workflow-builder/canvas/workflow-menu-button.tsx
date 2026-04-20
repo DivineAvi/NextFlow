@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronUp, ChevronDown, ArrowLeft,
-  Upload, Download, LayoutGrid, Workflow,
+  Upload, Download, LayoutGrid,
 } from "lucide-react";
 import { useCanvasStore } from "@/store/canvas-store";
 import { useShallow } from "zustand/react/shallow";
@@ -72,7 +72,7 @@ export function WorkflowMenuButton() {
   }, [setNodes, setEdges, setWorkflowName, fitView]);
 
   return (
-    <div ref={menuRef} className="relative flex items-center gap-2 bg-[var(--wf-btn-bg)] p-2 rounded-xl">
+    <div ref={menuRef} className="relative flex items-center gap-2 bg-[var(--wf-btn-bg)] p-2 rounded-xl shadow-md">
       {/* Logo + chevron button */}
       <button
         onClick={() => setMenuOpen((o) => !o)}
@@ -82,7 +82,7 @@ export function WorkflowMenuButton() {
             : "border-[var(--wf-border)] "
         }`}
       >
-        <Workflow size={16} className="text-blue-400 shrink-0" />
+        <img src="/logo.png" alt="NextFlow" className="size-5 shrink-0" style={{ filter: "invert(var(--wf-logo-invert))" }} />
         {menuOpen ? (
           <ChevronUp size={12} className="text-[var(--wf-text-primary)]" />
         ) : (
@@ -94,7 +94,7 @@ export function WorkflowMenuButton() {
       <input
         value={workflowName}
         onChange={(e) => setWorkflowName(e.target.value)}
-        className="nodrag nopan w-10 bg-transparent outline-none text-sm font-semibold text-[var(--wf-text-primary)] placeholder:text-[var(--wf-text-muted)] min-w-0 max-w-[180px] truncate"
+        className="nodrag nopan  bg-transparent outline-none text-sm font-semibold text-[var(--wf-text-primary)] placeholder:text-[var(--wf-text-muted)] min-w-0 max-w-[180px] truncate"
         placeholder="Untitled"
         spellCheck={false}
       />
