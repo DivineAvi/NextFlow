@@ -4,7 +4,9 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // Add the targets for both your Mac and the Trigger.dev cloud
+  binaryTargets = ["native", "debian-openssl-3.0.x"] 
 }
 
 model User {
