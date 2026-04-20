@@ -32,6 +32,7 @@ export function SelectorRenderer({
   const [internalValue, setInternalValue] = useState(initialValue);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Position dropdown below the trigger button using fixed coords
   useEffect(() => {
@@ -51,9 +52,9 @@ export function SelectorRenderer({
   useEffect(() => {
     if (!isOpen) return;
     const handleClick = (e: MouseEvent) => {
-      if (buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
+      const target = e.target as Node;
+      if (buttonRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
+      setIsOpen(false);
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -90,6 +91,7 @@ export function SelectorRenderer({
         typeof window !== "undefined" &&
         createPortal(
           <div
+            ref={dropdownRef}
             style={dropdownStyle}
             className="p-0.5 bg-[var(--wf-bg-surface)] border border-[var(--wf-border)] rounded-lg shadow-xl animate-in fade-in slide-in-from-top-1 duration-150"
           >

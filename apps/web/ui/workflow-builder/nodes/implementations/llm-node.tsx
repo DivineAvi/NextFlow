@@ -113,7 +113,7 @@ export function LLMNode(props: NodeProps) {
               id={modelControl.id}
               nodeId={props.id}
               tone="dark"
-              value={modelControl.defaultValue}
+              value={props.data.model ?? modelControl.defaultValue}
               options={modelControl.options}
             />
           </div>
