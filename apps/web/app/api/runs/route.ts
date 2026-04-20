@@ -2,19 +2,23 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@nextflow/core";
 
-// GET /api/runs — returns all WorkflowRuns for the authenticated user, newest first
-export async function GET() {
+// GET /api/runs?workflowId=xxx — returns WorkflowRuns for the authenticated user, optionally filtered by workflow
+export async function GET(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const workflowId = searchParams.get("workflowId");
+
     const runs = await db.workflowRun.findMany({
       where: {
         workflow: {
           user: { clerkId: userId },
         },
+        ...(workflowId ? { workflowId } : {}),
       },
       orderBy: { createdAt: "desc" },
       take: 50,

@@ -70,3 +70,14 @@ body {
 .animate-pulse-shadow {
   animation: pulse-shadow 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Drag-selection box on the workflow canvas */
+.react-flow__nodesselection-rect{
+  background: rgba(59, 130, 246, 0.04);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  border-radius: 6px;
+  margin: -8px;
+  padding: 8px;
+  stroke-dasharray: 8 6;
+  box-sizing: content-box;
+}

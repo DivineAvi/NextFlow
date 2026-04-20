@@ -99,6 +99,7 @@ export interface BaseNodeProps extends NodeProps, StyleProps {
 // ---------------------------------------------------------------------------
 
 export const BaseNode = memo(function BaseNode({
+  id,
   data,
   children,
   preview,
@@ -112,10 +113,11 @@ export const BaseNode = memo(function BaseNode({
 }: BaseNodeProps) {
   const Icon = icon as ComponentType<SVGProps<SVGSVGElement>>;
   const [label, setLabel] = useState<string>(data.label);
-  const { execution, runWorkflow } = useCanvasStore(
+  const { execution, runWorkflow, runNode } = useCanvasStore(
     useShallow((s) => ({
       execution: s.execution,
       runWorkflow: s.runWorkflow,
+      runNode: s.runNode,
     }))
   );
 
@@ -127,24 +129,25 @@ export const BaseNode = memo(function BaseNode({
       style={{ minWidth, minHeight, width: Width, height: Height }}
       className="group flex flex-col"
     >
-      {/* Per-node Run Workflow button — shown on hover, left of node */}
-      <button
-        onClick={runWorkflow}
-        disabled={isRunning}
-        className="nodrag nopan whitespace-nowrap group-hover:opacity-100 absolute top-0 right-[102%] opacity-0 transition-all duration-300 flex items-center gap-1.5 h-6 px-2 rounded-lg bg-blue-600 text-white text-[11px] shadow-lg hover:bg-blue-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isRunning ? (
-          <>
-            <Loader2 size={11} className="animate-spin" />
-            Running…
-          </>
-        ) : (
-          <>
-            <Play size={11} />
-            Run Workflow
-          </>
-        )}
-      </button>
+      {/* Hover action buttons — shown to the left of the node */}
+      <div className="nodrag nopan absolute top-0 right-[102%] opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col gap-1 items-end">
+        <button
+          onClick={() => runNode(id)}
+          disabled={isRunning}
+          className="whitespace-nowrap flex items-center gap-1.5 h-6 px-2.5 rounded-lg bg-zinc-700 text-zinc-200 text-[11px] shadow-lg hover:bg-zinc-600 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {isRunning ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} fill="currentColor" />}
+          Run Node
+        </button>
+        <button
+          onClick={runWorkflow}
+          disabled={isRunning}
+          className="whitespace-nowrap flex items-center gap-1.5 h-6 px-2.5 rounded-lg bg-blue-600 text-white text-[11px] shadow-lg hover:bg-blue-500 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {isRunning ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} fill="currentColor" />}
+          Run Workflow
+        </button>
+      </div>
 
       {/* Label row */}
       <div className="flex items-center gap-1 px-1/2 w-fit h-5">

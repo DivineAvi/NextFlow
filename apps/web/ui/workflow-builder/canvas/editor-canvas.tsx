@@ -12,7 +12,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import { useShallow } from "zustand/react/shallow";
-import { Undo2, Redo2, Play, Loader2, FlaskConical } from "lucide-react";
+import { Undo2, Redo2, Play, Loader2, FlaskConical, Boxes } from "lucide-react";
 
 import { CanvasEmptyState } from "./canvas-empty-state";
 import { useCanvasStore } from "@/store/canvas-store";
@@ -115,7 +115,7 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
     workflowId, workflowName,
     setWorkflowId, setWorkflowName,
     pushHistory, undo, redo, canUndo, canRedo,
-    setExecutionRunning,
+    setExecutionRunning, runSelected,
   } = useCanvasStore(
     useShallow((s) => ({
       nodes: s.nodes,
@@ -137,8 +137,11 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
       canUndo: s.canUndo,
       canRedo: s.canRedo,
       setExecutionRunning: s.setExecutionRunning,
+      runSelected: s.runSelected,
     }))
   );
+
+  const selectedCount = nodes.filter((n) => n.selected).length;
 
   const { screenToFlowPosition, addNodes, setNodes } = useReactFlow();
   const [runError, setRunError] = useState<string | null>(null);
@@ -153,6 +156,32 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
   // SSE for instant RUNNING updates; DB poll for reliable output delivery
   useWorkflowRunRealtime();
   useWorkflowRunPoller();
+
+  // ── Auto-save: persist nodes/edges to DB 1.5s after the last change ─
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!workflowId || execution.isRunning) return;
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      // Strip transient execution state before persisting
+      const cleanNodes = nodes.map(({ data, ...rest }) => ({
+        ...rest,
+        data: Object.fromEntries(
+          Object.entries(data).filter(([k]) => !["status", "output", "error"].includes(k))
+        ),
+      }));
+      fetch(`/api/workflows/${workflowId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ definition: { nodes: cleanNodes, edges } }),
+      }).catch(() => {});
+    }, 1500);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [nodes, edges, workflowId, execution.isRunning]);
 
   // ── Sidebar "Add to Canvas" bridge ──────────────────────────────────
   useEffect(() => {
@@ -340,7 +369,22 @@ export const EditorCanvasInner = memo(function EditorCanvasInner() {
               Sample
             </button>
 
-
+            {/* Run Selected — only visible when nodes are selected */}
+            {selectedCount > 0 && (
+              <button
+                onClick={runSelected}
+                disabled={execution.isRunning}
+                title={`Run ${selectedCount} selected node${selectedCount > 1 ? "s" : ""}`}
+                className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-violet-700 text-white hover:bg-violet-600 text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {execution.isRunning ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <Boxes size={13} />
+                )}
+                Run Selected ({selectedCount})
+              </button>
+            )}
           </div>
 
           {/* Error toast */}

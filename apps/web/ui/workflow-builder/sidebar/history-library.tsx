@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronRight, CheckCircle2, XCircle, Loader2, Clock, AlertTriangle, RefreshCw } from "lucide-react";
 import { cn } from "@nextflow/utils";
+import { useCanvasStore } from "@/store/canvas-store";
 
 interface NodeRun {
   id: string;
@@ -63,26 +64,30 @@ function StatusIcon({ status }: { status: string }) {
 }
 
 export function HistorySidebar() {
+  const workflowId = useCanvasStore((s) => s.workflowId);
   const [runs, setRuns] = useState<WorkflowRun[]>([]);
   const [expandedRun, setExpandedRun] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchRuns = useCallback(async () => {
+    if (!workflowId) return;
     try {
-      const res = await fetch("/api/runs");
+      const res = await fetch(`/api/runs?workflowId=${workflowId}`);
       if (!res.ok) return;
       const data = await res.json();
       setRuns(data);
     } catch {
       // silently fail
     }
-  }, []);
+  }, [workflowId]);
 
-  // Initial load
+  // Reload whenever the active workflow changes
   useEffect(() => {
+    setRuns([]);
+    if (!workflowId) return;
     setIsLoading(true);
     fetchRuns().finally(() => setIsLoading(false));
-  }, [fetchRuns]);
+  }, [workflowId]);
 
   // Poll every 3 seconds while any run is active
   useEffect(() => {

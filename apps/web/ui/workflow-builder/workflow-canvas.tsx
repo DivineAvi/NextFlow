@@ -10,9 +10,12 @@ import { HistorySidebar } from "./sidebar/history-library";
  * share the same React Flow context. This allows the sidebar's "Add to Canvas"
  * action to resolve node positions via `screenToFlowPosition` without prop-drilling.
  */
-export function WorkflowCanvas() {
+import { WorkflowInitializer } from "./workflow-initializer";
+
+export function WorkflowCanvas({ workflowId }: { workflowId?: string }) {
   return (
     <ReactFlowProvider>
+      {workflowId && <WorkflowInitializer workflowId={workflowId} />}
       <div className="flex h-screen w-full overflow-hidden bg-[#0A0A0A]">
         <AppSidebar />
         <main className="flex-1 min-w-0">

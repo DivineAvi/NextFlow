@@ -57,6 +57,8 @@ interface CanvasStore {
   applyNodeStatuses: (statuses: Record<string, { status: string; output?: any; error?: string }>) => void;
 
   runWorkflow: () => Promise<void>;
+  runNode: (nodeId: string) => Promise<void>;
+  runSelected: () => Promise<void>;
 
   pushHistory: () => void;
   undo: () => void;
@@ -159,25 +161,69 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   runWorkflow: async () => {
     const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
     if (execution.isRunning) return;
-
     try {
       const res = await fetch("/api/execute-workflow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workflowId, nodes, edges, scope: "FULL" }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Run failed");
-      }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Run failed"); }
       const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
-      if (newWorkflowId && newWorkflowId !== workflowId) {
-        setWorkflowId(newWorkflowId);
-      }
+      if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
       setExecutionRunning(runId, triggerRunId);
-    } catch (e: any) {
-      console.error("runWorkflow error:", e.message);
+    } catch (e: any) { console.error("runWorkflow error:", e.message); }
+  },
+
+  runNode: async (nodeId: string) => {
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    if (execution.isRunning) return;
+
+    // Collect nodeId + all its ancestors via backwards BFS
+    const included = new Set<string>();
+    const queue = [nodeId];
+    while (queue.length > 0) {
+      const cur = queue.pop()!;
+      if (included.has(cur)) continue;
+      included.add(cur);
+      for (const e of edges) {
+        if (e.target === cur && !included.has(e.source)) queue.push(e.source);
+      }
     }
+    const subNodes = nodes.filter((n) => included.has(n.id));
+    const subEdges = edges.filter((e) => included.has(e.source) && included.has(e.target));
+
+    try {
+      const res = await fetch("/api/execute-workflow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workflowId, nodes: subNodes, edges: subEdges, scope: "SINGLE" }),
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Run failed"); }
+      const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
+      if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
+      setExecutionRunning(runId, triggerRunId);
+    } catch (e: any) { console.error("runNode error:", e.message); }
+  },
+
+  runSelected: async () => {
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setWorkflowId } = get();
+    if (execution.isRunning) return;
+    const selectedNodes = nodes.filter((n) => n.selected);
+    if (selectedNodes.length === 0) return;
+    const selectedIds = new Set(selectedNodes.map((n) => n.id));
+    const selectedEdges = edges.filter((e) => selectedIds.has(e.source) && selectedIds.has(e.target));
+
+    try {
+      const res = await fetch("/api/execute-workflow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workflowId, nodes: selectedNodes, edges: selectedEdges, scope: "SELECTED" }),
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Run failed"); }
+      const { runId, triggerRunId, workflowId: newWorkflowId } = await res.json();
+      if (newWorkflowId && newWorkflowId !== workflowId) setWorkflowId(newWorkflowId);
+      setExecutionRunning(runId, triggerRunId);
+    } catch (e: any) { console.error("runSelected error:", e.message); }
   },
 
   pushHistory: () => {
