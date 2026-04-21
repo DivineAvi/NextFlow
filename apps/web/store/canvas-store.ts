@@ -192,18 +192,20 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   runNode: async (nodeId: string) => {
-    const { nodes, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId, applyNodeStatuses } = get();
+    const { nodes, edges, workflowId, execution, setExecutionRunning, setExecutionIdle, setWorkflowId, applyNodeStatuses } = get();
     if (execution.isRunning) return;
     set((s) => ({ execution: { ...s.execution, isRunning: true } }));
 
     const node = nodes.find((n) => n.id === nodeId);
     if (!node) { setExecutionIdle(); return; }
 
+    const incomingEdges = edges.filter((e) => e.target === nodeId);
+
     try {
       const res = await fetch("/api/execute-workflow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workflowId, nodes: [node], edges: [], scope: "SINGLE" }),
+        body: JSON.stringify({ workflowId, nodes: [node], edges: incomingEdges, scope: "SINGLE" }),
       });
       if (!res.ok) {
         const err = await res.json();
