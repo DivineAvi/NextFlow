@@ -200,12 +200,14 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     if (!node) { setExecutionIdle(); return; }
 
     const incomingEdges = edges.filter((e) => e.target === nodeId);
+    const sourceNodeIds = new Set(incomingEdges.map((e) => e.source));
+    const sourceNodes = nodes.filter((n) => sourceNodeIds.has(n.id));
 
     try {
       const res = await fetch("/api/execute-workflow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workflowId, nodes: [node], edges: incomingEdges, scope: "SINGLE" }),
+        body: JSON.stringify({ workflowId, nodes: [node], edges: incomingEdges, sourceNodes, scope: "SINGLE" }),
       });
       if (!res.ok) {
         const err = await res.json();

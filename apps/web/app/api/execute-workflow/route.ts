@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { nodes, edges, workflowId: bodyWorkflowId, scope = "FULL" } = body;
+    const { nodes, edges, sourceNodes, workflowId: bodyWorkflowId, scope = "FULL" } = body;
 
     if (!Array.isArray(nodes) || !Array.isArray(edges)) {
       return NextResponse.json(
@@ -83,6 +83,7 @@ export async function POST(request: Request) {
       workflowRunId: run.id,
       nodes,
       edges,
+      sourceNodes,
       scope,
     });
 

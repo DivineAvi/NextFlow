@@ -88,11 +88,20 @@ export const workflowOrchestrator = task({
     workflowRunId: string;
     nodes: Node[];
     edges: Edge[];
+    sourceNodes?: Node[];
     scope?: "FULL" | "SELECTED" | "SINGLE";
   }) => {
     const { workflowRunId, nodes, edges } = payload;
 
     const nodeOutputs = new Map<string, any>();
+
+    // For SINGLE scope, pre-seed outputs from connected source nodes so
+    // buildInputs can resolve edge-connected inputs without executing them.
+    if (payload.scope === "SINGLE" && payload.sourceNodes) {
+      for (const sn of payload.sourceNodes) {
+        nodeOutputs.set(sn.id, sn.data ?? {});
+      }
+    }
     const nodeStatuses: Record<string, { status: string; output?: any; error?: string }> = {};
     const done = new Map<string, boolean>();
 
