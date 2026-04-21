@@ -49,6 +49,21 @@ function topoSort(nodes: Node[], edges: Edge[]): Node[][] {
 }
 
 // ---------------------------------------------------------------------------
+// Simulate the output a source node would produce without executing it.
+// Mirrors the return values in node-executor.ts so edge-connected inputs
+// resolve to the correct scalar value in SINGLE scope.
+// ---------------------------------------------------------------------------
+function simulateNodeOutput(node: Node): any {
+  const data = node.data ?? {};
+  switch (node.type) {
+    case "text_node":         return data.text ?? "";
+    case "upload_image_node": return data.image_file ?? "";
+    case "upload_video_node": return data.video_file ?? "";
+    default:                  return data.output ?? "";
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Build the resolved input map for a single node.
 // Merges static node data with upstream outputs wired via edges.
 // ---------------------------------------------------------------------------
@@ -99,7 +114,7 @@ export const workflowOrchestrator = task({
     // buildInputs can resolve edge-connected inputs without executing them.
     if (payload.scope === "SINGLE" && payload.sourceNodes) {
       for (const sn of payload.sourceNodes) {
-        nodeOutputs.set(sn.id, sn.data ?? {});
+        nodeOutputs.set(sn.id, simulateNodeOutput(sn));
       }
     }
     const nodeStatuses: Record<string, { status: string; output?: any; error?: string }> = {};
